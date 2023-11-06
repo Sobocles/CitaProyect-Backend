@@ -1,4 +1,27 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -12,76 +35,164 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.renewToken = exports.login = void 0;
 const usuario_1 = __importDefault(require("../models/usuario")); // Asegúrate de importar el modelo correcto
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const generar_jwt_1 = require("../helpers/generar-jwt");
-const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password } = req.body;
-    console.log(email);
-    try {
-        // Verificar email
-        const usuarioDB = yield usuario_1.default.findOne({ where: { email } });
-        console.log(usuarioDB);
-        if (!usuarioDB) {
-            return res.status(404).json({
-                ok: false,
-                msg: 'Email no encontrado',
+const menu_frontend_1 = require("../helpers/menu-frontend");
+const generatePassword = __importStar(require("generate-password"));
+const nodemailer = __importStar(require("nodemailer"));
+const jwt_1 = __importDefault(require("../helpers/jwt"));
+const emails_1 = __importDefault(require("../helpers/emails"));
+const medico_1 = __importDefault(require("../models/medico"));
+class Usuarios {
+    constructor() {
+        this.login = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const { email, password } = req.body;
+            let userOrMedico;
+            try {
+                // Intenta encontrar un Usuario con el email
+                userOrMedico = yield usuario_1.default.findOne({ where: { email } });
+                // Si no se encuentra un Usuario, busca un Medico
+                if (!userOrMedico) {
+                    userOrMedico = yield medico_1.default.findOne({ where: { email } });
+                    console.log('medico ', userOrMedico);
+                }
+                // Si tampoco se encuentra un Medico, retorna un error
+                if (!userOrMedico) {
+                    return res.status(404).json({
+                        ok: false,
+                        msg: 'Email no encontrado',
+                    });
+                }
+                // Verificar contraseña
+                const validPassword = bcrypt_1.default.compareSync(password, userOrMedico.password);
+                if (!validPassword) {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: 'Contraseña no válida',
+                    });
+                }
+                console.log(userOrMedico.rol);
+                // Generar el TOKEN - JWT
+                let token;
+                if (userOrMedico instanceof usuario_1.default) {
+                    token = yield jwt_1.default.instance.generarJWT(userOrMedico.rut, userOrMedico.nombre, userOrMedico.apellidos, userOrMedico.rol);
+                }
+                else if (userOrMedico instanceof medico_1.default) {
+                    token = yield jwt_1.default.instance.generarJWT(userOrMedico.rut, userOrMedico.nombre, userOrMedico.apellidos, userOrMedico.rol);
+                }
+                res.json({
+                    ok: true,
+                    userOrMedico,
+                    token,
+                    menu: (0, menu_frontend_1.getMenuFrontEnd)(userOrMedico.rol),
+                });
+            }
+            catch (error) {
+                console.log(error);
+                res.status(500).json({
+                    ok: false,
+                    msg: 'Hable con el administrador',
+                });
+            }
+        });
+    }
+    static get instance() {
+        return this._instance || (this._instance = new Usuarios());
+    }
+    recuperarPassword(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { nombre, email } = req.body;
+            console.log(nombre);
+            try {
+                const dbUser = yield usuario_1.default.findOne({ where: { nombre } });
+                if (!dbUser) {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: `El usuario no existe`
+                    });
+                }
+                if (email !== dbUser.email) {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: `El email es incorrecto`
+                    });
+                }
+                // Crear contraseña nueva
+                const password = generatePassword.generate({ length: 10, numbers: true });
+                const salt = bcrypt_1.default.genSaltSync();
+                dbUser.password = bcrypt_1.default.hashSync(password, salt);
+                yield dbUser.save();
+                // Enviar correo
+                emails_1.default.instance.enviarEmail(email, nombre, password);
+                return res.status(200).json({
+                    ok: true,
+                    msg: `Correo enviado a: ${email} satisfactoriamente` //smoralespincheira@gmail.com le envia correo al usuario que quiere recuperar su contraseña
+                });
+            }
+            catch (error) {
+                console.error(error);
+                return res.status(500).json({
+                    ok: false,
+                    msg: `Error en el funcionamiento del servidor`
+                });
+            }
+        });
+    }
+    // Función para enviar email usando nodemailer
+    enviarEmail(emailRecipient, username, newPassword) {
+        return __awaiter(this, void 0, void 0, function* () {
+            let transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                    user: 'smoralespincheira@gmail.com',
+                    pass: 'puppetmaster.9' // Cambia esto por tu contraseña
+                }
             });
-        }
-        // Verificar contraseña
-        const validPassword = bcrypt_1.default.compareSync(password, usuarioDB.password);
-        if (!validPassword) {
-            return res.status(400).json({
-                ok: false,
-                msg: 'Contraseña no válida',
+            let mailOptions = {
+                from: 'smoralespincheira@gmail.com',
+                to: emailRecipient,
+                subject: 'Recuperación de Contraseña',
+                text: `Hola ${username}, tu nueva contraseña es: ${newPassword}`
+            };
+            transporter.sendMail(mailOptions, function (error, info) {
+                if (error) {
+                    console.log(error);
+                }
+                else {
+                    console.log('Email enviado: ' + info.response);
+                }
             });
-        }
-        // Generar el TOKEN - JWT
-        console.log(usuarioDB.rut);
-        const token = yield (0, generar_jwt_1.generarJWT)(usuarioDB.rut);
-        res.json({
-            ok: true,
-            token,
         });
     }
-    catch (error) {
-        console.log(error);
-        res.status(500).json({
-            ok: false,
-            msg: 'Hable con el administrador',
+    revalidarToken(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const rut = req.rut;
+                const rol = req.rol;
+                console.log(rut, rol);
+                if (!rol) {
+                    return res.status(400).json({ ok: false, msg: 'Rol no definido' });
+                }
+                let userOrMedico;
+                if (rol === 'USER_ROLE' || rol === 'ADMIN_ROLE') { // Agregar el caso para 'ADMIN_ROLE'
+                    userOrMedico = yield usuario_1.default.findOne({ where: { rut } });
+                }
+                else if (rol === 'MEDICO_ROLE') {
+                    userOrMedico = yield medico_1.default.findOne({ where: { rut } });
+                }
+                if (!userOrMedico) {
+                    return res.status(404).json({ ok: false, msg: 'Usuario o médico no encontrado' });
+                }
+                // Genera un nuevo token y devuelve la información del usuario o médico
+                const newToken = yield jwt_1.default.instance.generarJWT(userOrMedico.rut, userOrMedico.nombre, userOrMedico.apellidos, rol);
+                const menu = (0, menu_frontend_1.getMenuFrontEnd)(rol);
+                return res.json({ token: newToken, userOrMedico, menu });
+            }
+            catch (error) {
+                return res.status(500).json({ ok: false, msg: 'Error del servidor' });
+            }
         });
     }
-});
-exports.login = login;
-const renewToken = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const rut = req.uid;
-    console.log(rut);
-    try {
-        // Generar el TOKEN - JWT
-        const token = yield (0, generar_jwt_1.generarJWT)(rut);
-        // Obtener el usuario por UID
-        const usuario = yield usuario_1.default.findByPk(rut);
-        if (!usuario) {
-            return res.status(404).json({
-                ok: false,
-                msg: 'Usuario no encontrado',
-            });
-        }
-        res.json({
-            ok: true,
-            token,
-            usuario,
-            // Se le envía el rol del usuario para revisar sus privilegios (USER_ROLE, ADMIN_ROLE)
-        });
-    }
-    catch (error) {
-        console.log(error);
-        res.status(500).json({
-            ok: false,
-            msg: 'Error al renovar el token',
-        });
-    }
-});
-exports.renewToken = renewToken;
+}
+exports.default = Usuarios;
 //# sourceMappingURL=auth.js.map

@@ -1,10 +1,11 @@
 
 import { Router } from 'express';
 import validarCampos from '../middlewares/validar-campos';
-import { check } from 'express-validator';
 import tipo_cita from '../controllers/tipo_cita';
 
 const router = Router();
+
+router.get('/especialidades', tipo_cita.instance.getEspecialidades);
 
 router.get('/',[
 
@@ -36,7 +37,9 @@ router.put('/:id',
 router.delete('/:id',[
     validarCampos.instance.validarCampos
 ], tipo_cita.instance.deleteTipoCita
-
  );
+
+
+
 
 export default router;

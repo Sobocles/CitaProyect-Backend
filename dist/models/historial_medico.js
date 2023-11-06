@@ -7,13 +7,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const connection_1 = __importDefault(require("../db/connection")); // Asegúrate de importar tu conexión a la base de datos
 const usuario_1 = __importDefault(require("../models/usuario")); // Importa el modelo de paciente
+const medico_1 = __importDefault(require("./medico"));
 class HistorialMedico extends sequelize_1.Model {
 }
 // Define el modelo para el historial médico
 HistorialMedico.init({
     id_historial: {
-        type: sequelize_1.DataTypes.STRING,
+        type: sequelize_1.DataTypes.INTEGER,
         primaryKey: true,
+        autoIncrement: true,
+        allowNull: false
     },
     diagnostico: {
         type: sequelize_1.DataTypes.STRING,
@@ -25,6 +28,7 @@ HistorialMedico.init({
     },
     notas: {
         type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
     },
     fecha_consulta: {
         type: sequelize_1.DataTypes.DATE,
@@ -32,16 +36,28 @@ HistorialMedico.init({
     },
     archivo: {
         type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
     },
+    rut_paciente: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+        references: {
+            model: usuario_1.default,
+            key: 'rut'
+        }
+    },
+    rut_medico: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+        references: {
+            model: medico_1.default,
+            key: 'id'
+        }
+    }
 }, {
     sequelize: connection_1.default,
     modelName: 'HistorialMedico', // Nombre de la tabla en la base de datos
 });
 exports.default = HistorialMedico;
 // Define la relación con el modelo de paciente
-HistorialMedico.belongsTo(usuario_1.default, {
-    foreignKey: 'rut_paciente',
-    targetKey: 'rut',
-    as: 'paciente', // Alias para la relación (puedes usar otro nombre si lo prefieres)
-});
 //# sourceMappingURL=historial_medico.js.map

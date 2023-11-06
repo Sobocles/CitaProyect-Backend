@@ -13,15 +13,35 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const tipo_cita_1 = __importDefault(require("../models/tipo_cita"));
+const sequelize_1 = require("sequelize");
 class tipo_cita {
     constructor() {
         this.getTipoCitas = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            const medicos = yield tipo_cita_1.default.findAll();
-            console.log(medicos);
-            res.json({ medicos });
+            try {
+                const desde = Number(req.query.desde) || 0;
+                // Obtén el total de tipo de citas
+                const totalTipoCitas = yield tipo_cita_1.default.count();
+                // Obtén los detalles de todos los tipos de citas con paginación
+                const tipo_cita = yield tipo_cita_1.default.findAll({
+                    offset: desde,
+                    limit: 5, // o el límite que prefieras
+                });
+                res.json({
+                    ok: true,
+                    tipo_cita,
+                    total: totalTipoCitas
+                });
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({
+                    msg: 'Error en el servidor',
+                });
+            }
         });
         this.getTipoCita = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
+            console.log('ola');
             try {
                 const medico = yield tipo_cita_1.default.findByPk(id);
                 if (!medico) {
@@ -44,26 +64,18 @@ class tipo_cita {
             }
         });
         this.crearTipoCita = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            const medicoData = req.body;
-            console.log(medicoData);
+            const tipoCitaData = req.body;
+            console.log(tipoCitaData);
             try {
-                // Verifica si ya existe un médico con el mismo ID
-                const medicoExistente = yield tipo_cita_1.default.findByPk(medicoData.id);
-                if (medicoExistente) {
-                    return res.status(400).json({
-                        ok: false,
-                        msg: 'Ya existe un tipo de cita con el mismo ID',
-                    });
-                }
-                // Crea un nuevo médico
-                const nuevoMedico = yield tipo_cita_1.default.create(medicoData);
+                // Crea un nuevo tipo de cita
+                const nuevoTipoCita = yield tipo_cita_1.default.create(tipoCitaData);
                 res.json({
                     ok: true,
-                    medico: nuevoMedico,
+                    tipoCita: nuevoTipoCita,
                 });
             }
             catch (error) {
-                console.log(error);
+                console.error(error);
                 res.status(500).json({
                     ok: false,
                     msg: 'Hable con el administrador',
@@ -99,6 +111,27 @@ class tipo_cita {
             }
         });
         this.deleteTipoCita = (req, res) => __awaiter(this, void 0, void 0, function* () {
+        });
+        this.getEspecialidades = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const especialidades = yield tipo_cita_1.default.findAll({
+                    attributes: ['especialidad_medica'],
+                    where: {
+                        especialidad_medica: {
+                            [sequelize_1.Op.ne]: null // Esto excluye las entradas donde especialidad_medica es NULL
+                        }
+                    },
+                    group: ['especialidad_medica']
+                });
+                res.json({ especialidades });
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({
+                    ok: false,
+                    msg: 'Hable con el administrador',
+                });
+            }
         });
     }
     static get instance() {

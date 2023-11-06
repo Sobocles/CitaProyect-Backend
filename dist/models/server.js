@@ -21,6 +21,10 @@ const horario_medico_1 = __importDefault(require("../routes/horario_medico"));
 const cita_medica_1 = __importDefault(require("../routes/cita_medica"));
 const tipo_cita_1 = __importDefault(require("../routes/tipo_cita"));
 const busquedas_1 = __importDefault(require("../routes/busquedas"));
+const horario_clinica_1 = __importDefault(require("../routes/horario_clinica"));
+const busqueda_cita_1 = __importDefault(require("../routes/busqueda_cita"));
+const payments_routes_1 = __importDefault(require("../routes/payments.routes"));
+const mercadoPago_1 = __importDefault(require("../routes/mercadoPago"));
 const cors = require('cors');
 const connection_1 = __importDefault(require("../db/connection"));
 const enviorenment_1 = require("../global/enviorenment");
@@ -34,7 +38,11 @@ class Server {
             horario_laboral: '/api/horario_medico',
             cita_medica: '/api/cita_medica',
             tipo_cita: '/api/tipo_cita',
-            busqueda: '/api/busqueda'
+            busqueda: '/api/busqueda',
+            horario_clinica: '/api/horario_clinica',
+            busqueda_cita: '/api/busqueda_cita',
+            paypal: '/api/paypal',
+            mercadoPago: '/api/mercadoPago',
         };
         this.app = (0, express_1.default)();
         //Metodos iniciales
@@ -76,6 +84,10 @@ class Server {
         this.app.use(this.apiPaths.cita_medica, cita_medica_1.default);
         this.app.use(this.apiPaths.tipo_cita, tipo_cita_1.default);
         this.app.use(this.apiPaths.busqueda, busquedas_1.default);
+        this.app.use(this.apiPaths.horario_clinica, horario_clinica_1.default);
+        this.app.use(this.apiPaths.busqueda_cita, busqueda_cita_1.default);
+        this.app.use(this.apiPaths.paypal, payments_routes_1.default);
+        this.app.use(this.apiPaths.mercadoPago, mercadoPago_1.default);
     }
     listen() {
         this.app.listen(enviorenment_1.PORT, () => {

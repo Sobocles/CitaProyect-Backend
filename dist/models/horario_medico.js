@@ -6,11 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const connection_1 = __importDefault(require("../db/connection"));
 // Define el modelo de HorarioLaboral
-class HorarioMedico extends sequelize_1.Model {
+class HorarioMedic extends sequelize_1.Model {
 }
 // Define el modelo para el paciente
 // Inicializa el modelo
-HorarioMedico.init({
+HorarioMedic.init({
     idHorario: {
         type: sequelize_1.DataTypes.INTEGER,
         primaryKey: true,
@@ -28,11 +28,7 @@ HorarioMedico.init({
         type: sequelize_1.DataTypes.TIME,
         allowNull: false,
     },
-    duracionCitas: {
-        type: sequelize_1.DataTypes.INTEGER,
-        allowNull: false,
-    },
-    rutMedico: {
+    rut_medico: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
     },
@@ -40,14 +36,10 @@ HorarioMedico.init({
         type: sequelize_1.DataTypes.BOOLEAN,
         allowNull: false,
     },
-    fechaCreacion: {
-        type: sequelize_1.DataTypes.DATE,
-        allowNull: false,
-        defaultValue: sequelize_1.DataTypes.NOW,
-    },
 }, {
     sequelize: connection_1.default,
-    modelName: 'HorarioMedico', // Nombre de la tabla en la base de datos
+    modelName: 'HorarioMedic',
+    tableName: 'horarioMedicos'
 });
-exports.default = HorarioMedico;
+exports.default = HorarioMedic;
 //# sourceMappingURL=horario_medico.js.map

@@ -21,18 +21,27 @@ class Historial_Medico {
             res.json({ historial });
         });
         this.getHistorial = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            const { id } = req.params;
+            const { id } = req.params; // Puesto que tu ruta tiene '/:id'
+            const rut_paciente = id;
+            console.log('historiales', rut_paciente);
             try {
-                const medico = yield historial_medico_1.default.findByPk(id);
-                if (!medico) {
+                const historiales = yield historial_medico_1.default.findAll({ where: { rut_paciente } });
+                if (historiales.length === 0) {
+                    return res.status(200).json({
+                        ok: true,
+                        msg: 'No hay historiales para el paciente',
+                        historiales: [] // Devuelve un arreglo vacío
+                    });
+                }
+                if (historiales.length === 0) {
                     return res.status(404).json({
                         ok: false,
-                        msg: 'historial no encontrado',
+                        msg: 'Historiales no encontrados para el paciente',
                     });
                 }
                 res.json({
                     ok: true,
-                    medico,
+                    historiales, // Devuelve todos los historiales médicos
                 });
             }
             catch (error) {

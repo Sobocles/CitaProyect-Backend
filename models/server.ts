@@ -7,10 +7,16 @@ import horarioRoutes from '../routes/horario_medico'
 import citaMedicaRoutes from '../routes/cita_medica'
 import tipo_cita from '../routes/tipo_cita'
 import busquedaRoute from '../routes/busquedas'
+import HorarioClinicaRoutes from '../routes/horario_clinica';
+import busqueda_citaRoutes from '../routes/busqueda_cita'
+import paypalRoutes from '../routes/payments.routes'
+import mercadoPagoRoutes from '../routes/mercadoPago'
+
 
 const cors = require('cors');
 import db from '../db/connection';
 import { PORT } from '../global/enviorenment';
+
 
 class Server {
     private app: Application;
@@ -23,7 +29,12 @@ class Server {
         horario_laboral: '/api/horario_medico',
         cita_medica: '/api/cita_medica',
         tipo_cita: '/api/tipo_cita',
-        busqueda: '/api/busqueda'
+        busqueda: '/api/busqueda',
+        horario_clinica: '/api/horario_clinica',
+        busqueda_cita: '/api/busqueda_cita',
+        paypal: '/api/paypal',
+        mercadoPago: '/api/mercadoPago',
+     
     };
 
 
@@ -76,6 +87,11 @@ class Server {
         this.app.use(this.apiPaths.cita_medica, citaMedicaRoutes )
         this.app.use(this.apiPaths.tipo_cita, tipo_cita )
         this.app.use(this.apiPaths.busqueda, busquedaRoute )
+        this.app.use(this.apiPaths.horario_clinica, HorarioClinicaRoutes  )
+        this.app.use(this.apiPaths.busqueda_cita, busqueda_citaRoutes  )
+        this.app.use(this.apiPaths.paypal, paypalRoutes  )
+        this.app.use(this.apiPaths.mercadoPago, mercadoPagoRoutes  )
+    
     }
 
     listen() {

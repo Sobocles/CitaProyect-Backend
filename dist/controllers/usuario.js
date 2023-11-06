@@ -12,34 +12,93 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUsuario = exports.putUsuario = exports.CrearUsuario = exports.getUsuario = exports.getUsuarios = void 0;
+exports.deleteUsuario = exports.putUsuario = exports.CrearUsuario = exports.getUsuario = exports.getAllUsuarios = exports.getUsuarios = void 0;
 const usuario_1 = __importDefault(require("../models/usuario"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const generar_jwt_1 = require("../helpers/generar-jwt");
+const sequelize_1 = require("sequelize");
+const jwt_1 = __importDefault(require("../helpers/jwt"));
+const historial_medico_1 = __importDefault(require("../models/historial_medico"));
+const cita_medica_1 = __importDefault(require("../models/cita_medica"));
 const getUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const usuarios = yield usuario_1.default.findAll();
-    console.log(usuarios);
-    res.json({ usuarios });
+    try {
+        const desde = Number(req.query.desde) || 0;
+        // Obtén el total de usuarios
+        const totalUsuarios = yield usuario_1.default.count();
+        // Obtén los detalles de todos los usuarios con paginación y sin mostrar campos sensibles
+        const usuarios = yield usuario_1.default.findAll({
+            attributes: {
+                exclude: ['password', 'createdAt', 'updatedAt']
+            },
+            offset: desde,
+            limit: 5,
+        });
+        res.json({
+            ok: true,
+            usuarios,
+            total: totalUsuarios
+        });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).send('Error interno del servidor');
+    }
 });
 exports.getUsuarios = getUsuarios;
+// Método para obtener a todos los pacientes
+const getAllUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('olaaaaaaaaaaaaa');
+    try {
+        // Obtén los ruts de los pacientes con citas en estados 'en_curso' o 'no_asistio'
+        const rutsPacientesConCitas = yield cita_medica_1.default.findAll({
+            where: {
+                estado: ['en_curso', 'no_asistido']
+            },
+            attributes: ['rut_paciente'],
+            group: ['rut_paciente']
+        });
+        // Extrae solo los ruts de los pacientes
+        const rutsExcluidos = rutsPacientesConCitas.map(cita => cita.rut_paciente);
+        // Obtén los detalles de todos los pacientes que no tienen citas en esos estados y que no son administradores
+        const usuarios = yield usuario_1.default.findAll({
+            where: {
+                rut: {
+                    [sequelize_1.Op.notIn]: rutsExcluidos
+                },
+                rol: {
+                    [sequelize_1.Op.ne]: 'ADMIN_ROLE' // Excluye a los usuarios con rol 'ADMIN_ROLE'
+                }
+            },
+            attributes: {
+                exclude: ['password', 'createdAt', 'updatedAt']
+            }
+        });
+        // Obtén el total de pacientes que no tienen citas en esos estados
+        const totalPacientes = usuarios.length;
+        res.json({
+            ok: true,
+            usuarios,
+            total: totalPacientes
+        });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).send('Error interno del servidor');
+    }
+});
+exports.getAllUsuarios = getAllUsuarios;
 const getUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const usuario = yield usuario_1.default.findByPk(id);
     if (usuario) {
-        res.json(usuario);
+        return res.json(usuario);
     }
-    else {
-        res.status(404).json({
-            msg: `No existe un usuario con el id ${id}`
-        });
-    }
-    res.json({
-        msg: 'getUsuarios '
+    return res.status(404).json({
+        msg: `No existe un usuario con el id ${id}`
     });
 });
 exports.getUsuario = getUsuario;
 const CrearUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password } = req.body;
+    const { usuario, email, password, nombre, apellidos, rol } = req.body;
     try {
         // Verificar si el correo ya está registrado
         const existeEmail = yield usuario_1.default.findOne({ where: { email } });
@@ -55,7 +114,7 @@ const CrearUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         // Crear un nuevo usuario
         const usuario = yield usuario_1.default.create(Object.assign(Object.assign({}, req.body), { password: hashedPassword }));
         // Generar el TOKEN - JWT
-        const token = yield (0, generar_jwt_1.generarJWT)(usuario.rut);
+        const token = yield jwt_1.default.instance.generarJWT(usuario.rut, nombre, apellidos, rol);
         res.json({
             ok: true,
             usuario,
@@ -72,29 +131,36 @@ const CrearUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 });
 exports.CrearUsuario = CrearUsuario;
 const putUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { rut } = req.params;
-    const { body } = req;
     try {
-        const usuario = yield usuario_1.default.findOne({ where: { rut } });
-        if (!usuario) {
+        const { id } = req.params;
+        const { body } = req;
+        console.log(body);
+        // Buscar el médico por su ID
+        const medico = yield usuario_1.default.findByPk(id);
+        if (!medico) {
             return res.status(404).json({
-                msg: 'No existe un usuario con el RUT ' + rut,
+                ok: false,
+                msg: 'Médico no encontrado',
             });
         }
-        // Actualiza los atributos del usuario con los valores proporcionados en el cuerpo de la solicitud
-        yield usuario.update(body);
-        res.json({ usuario });
+        // Actualizar los campos del médico con los valores proporcionados en el cuerpo de la solicitud
+        yield medico.update(body);
+        res.json({
+            medico,
+        });
     }
     catch (error) {
         console.error(error);
         res.status(500).json({
-            msg: 'Error en el servidor',
+            ok: false,
+            msg: 'Hable con el administrador',
         });
     }
 });
 exports.putUsuario = putUsuario;
 const deleteUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
+    console.log(id);
     try {
         const usuario = yield usuario_1.default.findByPk(id);
         if (!usuario) {
@@ -102,8 +168,13 @@ const deleteUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 msg: 'No existe un usuario con el id ' + id,
             });
         }
+        // Antes de eliminar al usuario, elimina los registros de historial relacionados
+        yield historial_medico_1.default.destroy({
+            where: { rut_paciente: usuario.rut }, // Asumiendo que el campo se llama "rut_usuario"
+        });
+        // Ahora puedes eliminar al usuario
         yield usuario.destroy();
-        res.json({ msg: 'Usuario eliminado correctamente' });
+        res.json({ msg: 'Usuario y sus registros de historial eliminados correctamente' });
     }
     catch (error) {
         console.error(error);

@@ -7,6 +7,7 @@ const express_1 = require("express");
 const validar_campos_1 = __importDefault(require("../middlewares/validar-campos"));
 const tipo_cita_1 = __importDefault(require("../controllers/tipo_cita"));
 const router = (0, express_1.Router)();
+router.get('/especialidades', tipo_cita_1.default.instance.getEspecialidades);
 router.get('/', [
     validar_campos_1.default.instance.validarCampos
 ], tipo_cita_1.default.instance.getTipoCitas);

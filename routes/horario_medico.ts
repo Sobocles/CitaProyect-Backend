@@ -1,21 +1,21 @@
 import { Router } from 'express';
 import HorarioMedico from '../controllers/horario_medico';
 
-import { check } from 'express-validator';
 import validarCampos from '../middlewares/validar-campos';
+import ValidarJwt from '../middlewares/validar-jwt';
 
 
 const router = Router();
 
 router.get('/',[
 
-    
+
     validarCampos.instance.validarCampos
-],HorarioMedico.instance.getHorarioMedico );
+],HorarioMedico.instance.getHorariosMedicos );
 
 router.get('/:id', [
-
-    validarCampos.instance.validarCampos
+ 
+  validarCampos.instance.validarCampos
 ], HorarioMedico.instance.getHorarioMedico );
 
 
@@ -31,10 +31,12 @@ router.post(
 
 router.put('/:id',
     [
+     
     validarCampos.instance.validarCampos
     ], HorarioMedico.instance.putHorarioMedico);
 
 router.delete('/:id',[
+
     validarCampos.instance.validarCampos
 ], HorarioMedico.instance.deleteHorarioMedico );
 

@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import HistorialMedico from '../models/historial_medico';
 import bcrypt from 'bcrypt';
-import { generarJWT } from '../helpers/generar-jwt';
+
 
 
 export default class Historial_Medico {
@@ -20,30 +20,40 @@ export default class Historial_Medico {
         }
 
         getHistorial = async( req: Request , res: Response ) => {
-            const { id } = req.params;
-
-        try {
-            const medico = await HistorialMedico.findByPk(id);
-
-            if (!medico) {
-            return res.status(404).json({
-                ok: false,
-                msg: 'historial no encontrado',
-            });
+          const { id } = req.params; // Puesto que tu ruta tiene '/:id'
+          const rut_paciente = id;
+          console.log('historiales',rut_paciente);
+      
+          try {
+              const historiales = await HistorialMedico.findAll({ where: { rut_paciente } });
+              if (historiales.length === 0) {
+                return res.status(200).json({
+                    ok: true,
+                    msg: 'No hay historiales para el paciente',
+                    historiales: [] // Devuelve un arreglo vacío
+                });
             }
-
-            res.json({
-            ok: true,
-            medico,
-            });
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-            ok: false,
-            msg: 'Hable con el administrador',
-            });
-        }
-        };
+      
+              if (historiales.length === 0) {
+                  return res.status(404).json({
+                      ok: false,
+                      msg: 'Historiales no encontrados para el paciente',
+                  });
+              }
+      
+              res.json({
+                  ok: true,
+                  historiales, // Devuelve todos los historiales médicos
+              });
+          } catch (error) {
+              console.log(error);
+              res.status(500).json({
+                  ok: false,
+                  msg: 'Hable con el administrador',
+              });
+          }
+      };
+      
 
         
 
@@ -137,5 +147,5 @@ export default class Historial_Medico {
               });
             }
          
-}
+        }
 }

@@ -13,12 +13,48 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const cita_medica_1 = __importDefault(require("../models/cita_medica"));
+const usuario_1 = __importDefault(require("../models/usuario"));
+const medico_1 = __importDefault(require("../models/medico"));
+const tipo_cita_1 = __importDefault(require("../models/tipo_cita"));
 class Cita {
     constructor() {
         this.getCitas = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            const medicos = yield cita_medica_1.default.findAll();
-            console.log(medicos);
-            res.json({ medicos });
+            try {
+                const desde = Number(req.query.desde) || 0;
+                // Obtén el total de citas
+                const totalCitas = yield cita_medica_1.default.count();
+                const citas = yield cita_medica_1.default.findAll({
+                    include: [
+                        {
+                            model: usuario_1.default,
+                            as: 'paciente',
+                            attributes: ['nombre'], // Nombre del paciente
+                        },
+                        {
+                            model: medico_1.default,
+                            as: 'medico',
+                            attributes: ['nombre'], // Nombre del médico
+                        },
+                        {
+                            model: tipo_cita_1.default,
+                            as: 'tipoCita',
+                            attributes: ['especialidad_medica'], // Tipo de cita
+                        },
+                    ],
+                    attributes: ['idCita', 'motivo', 'fecha', 'hora_inicio', 'hora_fin', 'estado'],
+                    offset: desde,
+                    limit: 5, // Límite de registros por página
+                });
+                res.json({
+                    ok: true,
+                    citas,
+                    total: totalCitas
+                });
+            }
+            catch (error) {
+                console.error('Error al obtener citas:', error);
+                res.status(500).json({ error: 'Error al obtener citas' });
+            }
         });
         this.getCita = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
@@ -27,7 +63,7 @@ class Cita {
                 if (!medico) {
                     return res.status(404).json({
                         ok: false,
-                        msg: 'Médico no encontrado',
+                        msg: 'Cita no encontrado',
                     });
                 }
                 res.json({
@@ -44,21 +80,25 @@ class Cita {
             }
         });
         this.crearCita = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            const medicoData = req.body;
+            console.log('AQUI ESTA LLEGANDO', req);
+            let citaData = req.body.cita; // Accede directamente al objeto cita
+            console.log('AQUI ESTA LLEGANDO', citaData);
+            // No necesitas reasignar ruts, ya que están presentes en el objeto citaData
+            // No necesitas eliminar las propiedades paciente y medico, ya que no están presentes
             try {
-                // Verifica si ya existe un médico con el mismo ID
-                const medicoExistente = yield cita_medica_1.default.findByPk(medicoData.id);
-                if (medicoExistente) {
+                // Verifica si ya existe una cita con el mismo ID
+                const citaExistente = yield cita_medica_1.default.findByPk(citaData.idCita);
+                if (citaExistente) {
                     return res.status(400).json({
                         ok: false,
-                        msg: 'Ya existe un médico con el mismo ID',
+                        msg: 'Ya existe una cita con el mismo ID',
                     });
                 }
-                // Crea un nuevo médico
-                const nuevoMedico = yield cita_medica_1.default.create(medicoData);
+                // Crea una nueva cita
+                const nuevaCita = yield cita_medica_1.default.create(citaData);
                 res.json({
                     ok: true,
-                    medico: nuevoMedico,
+                    cita: nuevaCita,
                 });
             }
             catch (error) {
@@ -73,20 +113,22 @@ class Cita {
             try {
                 const { id } = req.params;
                 const { body } = req;
+                console.log('aqui esta el id', id);
+                console.log('aqui esta el body', body);
                 // Buscar el médico por su ID
-                const medico = yield cita_medica_1.default.findByPk(id);
-                if (!medico) {
+                const cita = yield cita_medica_1.default.findByPk(id);
+                if (!cita) {
                     return res.status(404).json({
                         ok: false,
-                        msg: 'Médico no encontrado',
+                        msg: 'cita no encontrada',
                     });
                 }
                 // Actualizar los campos del médico con los valores proporcionados en el cuerpo de la solicitud
-                yield medico.update(body);
+                yield cita.update(body);
                 res.json({
                     ok: true,
                     msg: 'Médico actualizado correctamente',
-                    medico,
+                    cita,
                 });
             }
             catch (error) {
@@ -98,6 +140,23 @@ class Cita {
             }
         });
         this.deleteCita = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params;
+            try {
+                const cita = yield cita_medica_1.default.findByPk(id);
+                if (!cita) {
+                    return res.status(404).json({
+                        msg: 'No existe un cita con el id ' + id,
+                    });
+                }
+                yield cita.destroy();
+                res.json({ msg: 'Cita eliminadoa correctamente' });
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({
+                    msg: 'Error en el servidor',
+                });
+            }
         });
     }
     static get instance() {

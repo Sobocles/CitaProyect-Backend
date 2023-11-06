@@ -1,27 +1,27 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generarJWT = void 0;
-const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const generarJWT = (rut) => {
-    return new Promise((resolve, reject) => {
-        const payload = {
-            rut,
-        };
-        jsonwebtoken_1.default.sign(payload, process.env.JWT_SECRET || '', {
-            expiresIn: '12h',
-        }, (err, token) => {
-            if (err) {
-                console.error(err);
-                reject('No se pudo generar el JWT');
-            }
-            else {
-                resolve(token || '');
-            }
+const jsonwebtoken_1 = require("jsonwebtoken");
+const enviorenment_1 = require("../global/enviorenment");
+class JwtGenerate {
+    static get instance() {
+        return this._instance || (this._instance = new JwtGenerate());
+    }
+    generarJWT(uid, nombre, apellido) {
+        const payload = { uid, nombre, apellido };
+        return new Promise((resolve, reject) => {
+            (0, jsonwebtoken_1.sign)(payload, enviorenment_1.SECRET_JWT, {
+                expiresIn: '24h'
+            }, (error, token) => {
+                if (error) {
+                    console.log(error);
+                    reject(error);
+                }
+                else {
+                    resolve(token);
+                }
+            });
         });
-    });
-};
-exports.generarJWT = generarJWT;
+    }
+}
+exports.default = JwtGenerate;
 //# sourceMappingURL=generar-jwt.js.map

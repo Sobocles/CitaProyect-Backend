@@ -11,6 +11,9 @@ const router = (0, express_1.Router)();
 router.get('/', [
     validar_campos_1.default.instance.validarCampos
 ], medico_1.default.instance.getMedicos);
+router.get('/all', [
+    validar_campos_1.default.instance.validarCampos
+], medico_1.default.instance.getAllMedicos);
 router.get('/:id', [
     validar_campos_1.default.instance.validarCampos
 ], medico_1.default.instance.getMedico);
@@ -23,10 +26,10 @@ router.post('/', [
     // Agrega más validaciones según tus necesidades
     validar_campos_1.default.instance.validarCampos,
 ], medico_1.default.instance.CrearMedico);
-router.put('/:id', [
+router.put('/:rut', [
     validar_campos_1.default.instance.validarCampos
 ], medico_1.default.instance.putMedico);
-router.delete('/:id', [
+router.delete('/:rut', [
     validar_campos_1.default.instance.validarCampos
 ], medico_1.default.instance.deleteMedico);
 exports.default = router;

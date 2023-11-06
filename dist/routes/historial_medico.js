@@ -9,7 +9,7 @@ const express_validator_1 = require("express-validator");
 const validar_campos_1 = __importDefault(require("../middlewares/validar-campos"));
 const router = (0, express_1.Router)();
 router.get('/', [
-    validar_campos_1.default.instance.validarCampos
+    validar_campos_1.default.instance.validarCampos,
 ], historial_medico_1.default.instance.getHistoriales);
 router.get('/:id', [
     validar_campos_1.default.instance.validarCampos

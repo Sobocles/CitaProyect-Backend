@@ -7,11 +7,11 @@ const sequelize_1 = require("sequelize");
 const connection_1 = __importDefault(require("../db/connection"));
 class Usuario extends sequelize_1.Model {
 }
-// Define el modelo para el paciente
 Usuario.init({
     rut: {
         type: sequelize_1.DataTypes.STRING,
-        primaryKey: true, // Esto marca 'id' como clave primaria
+        primaryKey: true,
+        allowNull: false,
     },
     nombre: {
         type: sequelize_1.DataTypes.STRING,
@@ -30,7 +30,7 @@ Usuario.init({
         allowNull: false,
     },
     fecha_nacimiento: {
-        type: sequelize_1.DataTypes.DATEONLY,
+        type: sequelize_1.DataTypes.DATE,
         allowNull: false,
     },
     telefono: {
@@ -41,9 +41,15 @@ Usuario.init({
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
     },
+    rol: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'USER_ROLE', // Establece el valor por defecto para USER_ROLE
+    },
 }, {
     sequelize: connection_1.default,
-    modelName: 'Usuario', // Nombre de la tabla en la base de datos
+    modelName: 'Usuario',
+    tableName: 'usuarios',
 });
 exports.default = Usuario;
 //# sourceMappingURL=usuario.js.map

@@ -3,14 +3,15 @@ import Historial_Medico from '../controllers/historial_medico';
 
 import { check } from 'express-validator';
 import validarCampos from '../middlewares/validar-campos';
+import ValidarJwt from '../middlewares/validar-jwt';
 
 
 const router = Router();
 
 router.get('/',[
 
-    
-    validarCampos.instance.validarCampos
+
+    validarCampos.instance.validarCampos,
 ], Historial_Medico.instance.getHistoriales);
 
 router.get('/:id', [
@@ -22,6 +23,7 @@ router.get('/:id', [
 router.post(
     '/',
     [
+    
       check('diagnostico', 'El diagnóstico es obligatorio').notEmpty(),
       check('medicamento', 'El medicamento es obligatorio').notEmpty(),
       check('notas', 'Las notas son obligatorias').notEmpty(),
@@ -34,12 +36,14 @@ router.post(
 
 router.put('/:id',
     [
+    
     validarCampos.instance.validarCampos
     ], 
     Historial_Medico.instance.putHistorial
  );
 
 router.delete('/:id',[
+
     validarCampos.instance.validarCampos
 ], 
 Historial_Medico.instance.deleteHistorial

@@ -8,7 +8,7 @@ const connection_1 = __importDefault(require("../db/connection"));
 class Medico extends sequelize_1.Model {
 }
 Medico.init({
-    id: {
+    rut: {
         type: sequelize_1.DataTypes.STRING,
         primaryKey: true,
     },
@@ -17,6 +17,10 @@ Medico.init({
         allowNull: false,
     },
     apellidos: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+    },
+    telefono: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
     },
@@ -35,22 +39,26 @@ Medico.init({
     foto: {
         type: sequelize_1.DataTypes.STRING,
     },
-    estudios: {
-        type: sequelize_1.DataTypes.STRING,
-    },
-    redes_sociales: {
-        type: sequelize_1.DataTypes.STRING,
-    },
     nacionalidad: {
         type: sequelize_1.DataTypes.STRING,
     },
-    titulos: {
+    especialidad_medica: {
         type: sequelize_1.DataTypes.STRING,
     },
+    password: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+    },
+    rol: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'MEDICO_ROLE', // Esto garantiza que, por defecto, el rol sea 'MEDICO'
+    }
 }, {
     sequelize: connection_1.default,
     modelName: 'Medico',
-    timestamps: true,
+    tableName: 'medicos' // Nombre real de la tabla en la base de datos
 });
+// Definir la relación con CitaMedica
 exports.default = Medico;
 //# sourceMappingURL=medico.js.map

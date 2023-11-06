@@ -8,10 +8,10 @@ const sequelize_1 = require("sequelize");
 const connection_1 = __importDefault(require("../db/connection"));
 // Asegúrate de importar tu instancia Sequelize correctamente
 // Define el modelo TipoCitaMedica
-class TipoCitaMedica extends sequelize_1.Model {
+class TipoCita extends sequelize_1.Model {
 }
 // Inicializa el modelo TipoCitaMedica con los atributos y opciones de Sequelize
-TipoCitaMedica.init({
+TipoCita.init({
     idTipo: {
         type: sequelize_1.DataTypes.INTEGER,
         autoIncrement: true,
@@ -21,31 +21,26 @@ TipoCitaMedica.init({
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
     },
-    citaMedicaId: {
-        type: sequelize_1.DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'CitaMedica',
-            key: 'id_cita', // Nombre de la clave primaria en la tabla referenciada
-        },
-    },
     precio: {
         type: sequelize_1.DataTypes.FLOAT,
         allowNull: false,
     },
     especialidad_medica: {
         type: sequelize_1.DataTypes.STRING,
-        allowNull: false,
     },
     color_etiqueta: {
         type: sequelize_1.DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
+    },
+    duracion_cita: {
+        type: sequelize_1.DataTypes.NUMBER,
+        allowNull: true,
     },
 }, {
     sequelize: connection_1.default,
-    modelName: 'tipo_cita',
-    timestamps: true,
+    modelName: 'TipoCita',
+    tableName: 'tipo_cita' // Nombre real de la tabla en la base de datos
 });
 // Exporta el modelo para que pueda ser utilizado en otras partes de tu aplicación
-exports.default = TipoCitaMedica;
+exports.default = TipoCita;
 //# sourceMappingURL=tipo_cita.js.map

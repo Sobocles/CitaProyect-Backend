@@ -3,7 +3,7 @@ import { Router } from 'express';
 import validarCampos from '../middlewares/validar-campos';
 import Medicos from '../controllers/medico';
 import { check } from 'express-validator';
-
+import Medico from '../models/medico';
 
 const router = Router();
 
@@ -13,8 +13,13 @@ router.get('/',[
     validarCampos.instance.validarCampos
 ], Medicos.instance.getMedicos);
 
-router.get('/:id', [
+router.get('/all',[
+  validarCampos.instance.validarCampos
+], Medicos.instance.getAllMedicos);
 
+
+router.get('/:id', [
+  
     validarCampos.instance.validarCampos
 ], Medicos.instance.getMedico );
 
@@ -33,17 +38,19 @@ router.post(
     Medicos.instance.CrearMedico
   );
 
-router.put('/:id',
+router.put('/:rut',
     [
     validarCampos.instance.validarCampos
     ], 
 Medicos.instance.putMedico
  );
 
-router.delete('/:id',[
+ router.delete('/:rut',[
     validarCampos.instance.validarCampos
 ], 
 Medicos.instance.deleteMedico
  );
+
+
 
 export default router;

@@ -1,22 +1,24 @@
 import { DataTypes, Model } from 'sequelize';
 import db from '../db/connection';
+import CitaMedica from './cita_medica';
 
 class Medico extends Model {
-  public id!: string;
+  public rut!: string;
   public nombre!: string;
   public apellidos!: string;
   public email!: string;
+  public telefono!: string;
   public direccion!: string;
   public foto!: string;
-  public estudios!: string;
-  public redes_sociales!: string;
   public nacionalidad!: string;
-  public titulos!: string;
+  public especialidad_medica!: string;
+  public password!: string; // Nueva propiedad para contraseña
+  public rol!: string;      // Nueva propiedad para el rol
 }
 
 Medico.init(
   {
-    id: {
+    rut: {
       type: DataTypes.STRING,
       primaryKey: true,
     },
@@ -25,6 +27,10 @@ Medico.init(
       allowNull: false,
     },
     apellidos: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    telefono: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -43,24 +49,29 @@ Medico.init(
     foto: {
       type: DataTypes.STRING,
     },
-    estudios: {
-      type: DataTypes.STRING,
-    },
-    redes_sociales: {
-      type: DataTypes.STRING,
-    },
     nacionalidad: {
       type: DataTypes.STRING,
     },
-    titulos: {
+    especialidad_medica: {
       type: DataTypes.STRING,
     },
+    password: {  // Nueva definición para contraseña
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    rol: {  // Nueva definición para rol
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'MEDICO_ROLE', // Esto garantiza que, por defecto, el rol sea 'MEDICO'
+    }
   },
   {
-    sequelize: db,
-    modelName: 'Medico',
-    timestamps: true,
+    sequelize: db, // Conecta el modelo a tu instancia de Sequelize
+    modelName: 'Medico', // Nombre de la tabla en la base de datos
+    tableName: 'medicos' // Nombre real de la tabla en la base de datos
   }
 );
+
+// Definir la relación con CitaMedica
 
 export default Medico;

@@ -9,7 +9,7 @@ const validar_campos_1 = __importDefault(require("../middlewares/validar-campos"
 const router = (0, express_1.Router)();
 router.get('/', [
     validar_campos_1.default.instance.validarCampos
-], horario_medico_1.default.instance.getHorarioMedico);
+], horario_medico_1.default.instance.getHorariosMedicos);
 router.get('/:id', [
     validar_campos_1.default.instance.validarCampos
 ], horario_medico_1.default.instance.getHorarioMedico);
