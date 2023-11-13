@@ -13,11 +13,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buscarBloquesDisponibles = exports.buscarHorarioMedico = exports.buscarTipoCita = exports.buscarmedico = void 0;
+const sequelize_1 = require("sequelize");
 const medico_1 = __importDefault(require("../models/medico"));
 const horario_medico_1 = __importDefault(require("../models/horario_medico"));
 const tipo_cita_1 = __importDefault(require("../models/tipo_cita"));
 const cita_medica_1 = __importDefault(require("../models/cita_medica"));
-const connection_1 = __importDefault(require("../db/connection"));
 // Funciones Auxiliares:
 function timeToMinutes(time) {
     const [hours, minutes] = time.split(':').map(Number);
@@ -182,12 +182,15 @@ function buscarBloquesDisponibles(resultadoFormateado, duracionCita, fechaFormat
                 precio: precioCita,
                 idTipoCita,
                 especialidad,
+                fecha: fechaFormateada
             });
         }
         const citasProgramadas = yield cita_medica_1.default.findAll({
             where: {
                 rut_medico: medicoRut,
-                fecha: connection_1.default.where(connection_1.default.fn('DATE', connection_1.default.col('fecha')), '=', fechaFormateada)
+                fecha: {
+                    [sequelize_1.Op.eq]: new Date(fechaFormateada)
+                }
             }
         });
         const bloquesOcupados = citasProgramadas.map(cita => ({

@@ -7,11 +7,25 @@ import ValidarJwt from '../middlewares/validar-jwt';
 
 const router = Router();
 
+
+
 router.get('/',[
 
   
     validarCampos.instance.validarCampos
 ],Horario_clinica.instance.obtenerHorariosClinica );
+
+router.get('/Infoclinica',[
+
+  
+    validarCampos.instance.validarCampos
+],Horario_clinica.instance.getInfoClinica );
+
+router.delete('/Infoclinica/:id',[
+
+  
+    validarCampos.instance.validarCampos
+],Horario_clinica.instance.deleteInfoClinica );
 
 router.get('/:id', [
 
@@ -26,6 +40,16 @@ router.post(
       
         validarCampos.instance.validarCampos
     ], Horario_clinica.instance.CrearHorarioClinica
+  
+  );
+
+  router.post(
+    '/Infoclinica',
+    [
+
+      
+        validarCampos.instance.validarCampos
+    ], Horario_clinica.instance.crearInfoClinica
   
   );
 

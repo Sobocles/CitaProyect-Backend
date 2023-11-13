@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const horario_clinica_1 = __importDefault(require("../models/horario_clinica"));
 const horario_medico_1 = __importDefault(require("../models/horario_medico"));
+const info_clinica_1 = __importDefault(require("../models/info-clinica"));
 class Horario_clinica {
     constructor() {
         this.obtenerHorariosClinica = (req, res) => __awaiter(this, void 0, void 0, function* () {
@@ -140,6 +141,76 @@ class Horario_clinica {
                 console.error(error);
                 res.status(500).json({
                     msg: 'Error en el servidor',
+                });
+            }
+        });
+        this.getInfoClinica = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            console.log('OLLLLLAAAAA');
+            try {
+                // Obtén los detalles de todos los médicos
+                const Info = yield info_clinica_1.default.findAll({});
+                res.json({
+                    ok: true,
+                    Info,
+                });
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({
+                    msg: 'Error en el servidor',
+                });
+            }
+        });
+        this.crearInfoClinica = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                // Verifica si ya existe información de la clínica
+                const existeInfo = yield info_clinica_1.default.findOne();
+                if (existeInfo) {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: 'Ya existe información de la clínica. No se puede crear más de una, si desea cambiar la informacion de la clinica, porfacor elimine la informacion que ya existe e ingrese otra informacion.'
+                    });
+                }
+                // Crea la nueva información de la clínica
+                const { nombreClinica, direccion, telefono, email } = req.body;
+                console.log(nombreClinica, direccion, telefono, email);
+                const nuevaInfo = yield info_clinica_1.default.create({ nombreClinica, direccion, telefono, email });
+                res.json({
+                    ok: true,
+                    msg: 'Información de la clínica creada con éxito',
+                    nuevaInfo
+                });
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({
+                    msg: 'Error en el servidor al crear la información de la clínica'
+                });
+            }
+        });
+        this.deleteInfoClinica = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params; // Obtener el nombre de la clínica del parámetro de la ruta
+                // Buscar y eliminar la información de la clínica por su nombre
+                const resultado = yield info_clinica_1.default.destroy({
+                    where: { id }
+                });
+                if (resultado === 0) {
+                    return res.status(404).json({
+                        ok: false,
+                        mensaje: 'Información de clínica no encontrada'
+                    });
+                }
+                res.status(200).json({
+                    ok: true,
+                    mensaje: 'Información de la clínica eliminada con éxito'
+                });
+            }
+            catch (error) {
+                console.error(error);
+                res.status(500).json({
+                    ok: false,
+                    mensaje: 'Error al eliminar la información de la clínica'
                 });
             }
         });

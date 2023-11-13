@@ -83,6 +83,42 @@ export const getAllUsuarios = async (req: Request, res: Response) => {
 };
 
 
+export const getPacientesConCitasPagadasYEnCurso = async (req: Request, res: Response) => {
+  try {
+      // Obtén los detalles de los pacientes con citas en estado 'en_curso' y que estén marcadas como 'pagadas'
+      const pacientesConCitasPagadas = await CitaMedica.findAll({
+          where: {
+            estado: ['en_curso', 'no_asistido']
+          },
+          include: [{
+              model: Usuario, // Asumiendo que CitaMedica tiene una relación con Usuario
+              as: 'paciente',
+              where: {
+                  rol: {
+                      [Op.ne]: 'ADMIN_ROLE' // Excluye a los usuarios con rol 'ADMIN_ROLE'
+                  }
+              },
+              attributes: {
+                  exclude: ['password', 'createdAt', 'updatedAt']
+              }
+          }]
+      });
+
+      // Mapea los resultados para obtener solo los datos de los pacientes
+      const usuarios = pacientesConCitasPagadas.map(cita => cita.paciente);
+
+      res.json({
+          ok: true,
+          usuarios,
+          total: usuarios.length
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('Error interno del servidor');
+  }
+};
+
+
 
 
 export const getUsuario = async( req: Request , res: Response ) => {
@@ -100,7 +136,59 @@ export const getUsuario = async( req: Request , res: Response ) => {
   });
 }
 
+export const CrearUsuario = async( req: Request, res: Response ) => {
+  const { usuario, email, password, nombre, apellidos } = req.body;
 
+  try {
+    // Verificar si ya existen usuarios en la base de datos
+    const existenUsuarios = await Usuario.count();
+    let rol = 'USER_ROLE'; // Rol por defecto
+
+    // Si no hay usuarios, asignar rol de ADMIN_ROLE al primer usuario
+    if (existenUsuarios === 0) {
+      rol = 'ADMIN_ROLE';
+    }
+
+    // Verificar si el correo ya está registrado
+    const existeEmail = await Usuario.findOne({ where: { email } });
+
+    if (existeEmail) {
+      return res.status(400).json({
+        ok: false,
+        msg: 'El correo ya está registrado',
+      });
+    }
+
+    // Encriptar contraseña
+    const saltRounds = 10; // Número de rondas de cifrado
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Crear un nuevo usuario
+    const nuevoUsuario = await Usuario.create({
+      ...req.body,
+      password: hashedPassword,
+      rol: rol, // Asignar el rol determinado
+    });
+
+    // Generar el TOKEN - JWT
+    const token = await JwtGenerate.instance.generarJWT(nuevoUsuario.rut, nombre, apellidos, rol);
+
+    res.json({
+      ok: true,
+      usuario: nuevoUsuario,
+      token,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      ok: false,
+      msg: 'Error inesperado... revisar logs',
+    });
+  }
+};
+
+
+/*
 export const CrearUsuario = async( req: Request, res: Response ) => {
   const { usuario, email, password, nombre, apellidos, rol } = req.body;
 
@@ -142,29 +230,33 @@ export const CrearUsuario = async( req: Request, res: Response ) => {
     }
   };
 
-
+*/
   
-  export const  putUsuario = async (req: Request, res: Response) => {
+  export const putUsuario = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const { body } = req;
-      console.log(body);
-
-      // Buscar el médico por su ID
-      const medico = await Usuario.findByPk(id);
-
-      if (!medico) {
+      let { body } = req;
+  
+      // Buscar el usuario por su ID
+      const usuario = await Usuario.findByPk(id);
+  
+      if (!usuario) {
         return res.status(404).json({
           ok: false,
-          msg: 'Médico no encontrado',
+          msg: 'Usuario no encontrado',
         });
       }
-
-      // Actualizar los campos del médico con los valores proporcionados en el cuerpo de la solicitud
-      await medico.update(body);
-
+  
+      // Si la contraseña no está presente o está vacía en la solicitud, elimínala del objeto body
+      if (!body.password || body.password.trim() === '') {
+        delete body.password;
+      }
+  
+      // Actualizar los campos del usuario con los valores proporcionados en el cuerpo de la solicitud
+      await usuario.update(body);
+  
       res.json({
-        medico,
+        usuario,
       });
     } catch (error) {
       console.error(error);
@@ -174,6 +266,7 @@ export const CrearUsuario = async( req: Request, res: Response ) => {
       });
     }
   };
+  
 
 
 export const deleteUsuario = async (req: Request, res: Response) => {

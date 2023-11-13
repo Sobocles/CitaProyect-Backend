@@ -112,7 +112,7 @@ export default class Medicos {
                   ...medicoData,
                   email: email,
                   password: hashedPassword,
-                  rol: 'MEDICO_ROLE' // Asumiendo que el rol para los médicos es 'MEDICO'
+                  rol: 'MEDICO_ROLE' 
               });
       
               // Genera el JWT

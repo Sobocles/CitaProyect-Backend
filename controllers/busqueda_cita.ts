@@ -196,15 +196,20 @@ export async function buscarBloquesDisponibles(resultadoFormateado: any, duracio
             precio: precioCita,
             idTipoCita,
             especialidad,
+            fecha: fechaFormateada
         });
     }
 
     const citasProgramadas = await CitaMedica.findAll({
         where: {
             rut_medico: medicoRut,
-            fecha: db.where(db.fn('DATE', db.col('fecha')), '=', fechaFormateada)
+            fecha: {
+                [Op.eq]: new Date(fechaFormateada)
+            }
+            
         }
     });
+    
 
    
 

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Medico from '../models/medico';
 import bcrypt from 'bcrypt';
 import HorarioMedic from '../models/horario_medico';
+import { Op } from 'sequelize';
 
 
 export default class HorarioMedico {
@@ -91,35 +92,64 @@ getHorariosMedicos = async (req: Request, res: Response) => {
 
         
 
-        CrearHorarioMedico = async( req: Request, res: Response ) => {
-            const medicoData = req.body;
-          console.log(medicoData);
-            try {
-              // Verifica si ya existe un médico con el mismo ID
-              const medicoExistente = await HorarioMedic.findByPk(medicoData.id);
-          
-              if (medicoExistente) {
-                return res.status(400).json({
-                  ok: false,
-                  msg: 'Ya existe un horario con el mismo ID',
-                });
-              }
-          
-              // Crea un nuevo médico
-              const nuevoMedico = await HorarioMedic.create(medicoData);
-          
-              res.json({
-                ok: true,
-                medico: nuevoMedico,
-              });
-            } catch (error) {
-              console.log(error);
-              res.status(500).json({
-                ok: false,
-                msg: 'Hable con el administrador',
-              });
+      CrearHorarioMedico = async(req: Request, res: Response) => {
+        const { diaSemana, horaInicio, horaFinalizacion, rut_medico } = req.body;
+      
+        try {
+          // Buscar horarios existentes que puedan solaparse
+          const horariosExistentes = await HorarioMedic.findAll({
+            where: {
+              rut_medico,
+              diaSemana,
+              [Op.or]: [
+                {
+                  horaInicio: {
+                    [Op.lt]: horaFinalizacion,
+                    [Op.ne]: horaFinalizacion
+                  },
+                  horaFinalizacion: {
+                    [Op.gt]: horaInicio
+                  }
+                },
+                {
+                  horaInicio: {
+                    [Op.lt]: horaFinalizacion
+                  },
+                  horaFinalizacion: {
+                    [Op.gt]: horaInicio,
+                    [Op.ne]: horaInicio
+                  }
+                }
+              ]
             }
-          };
+          });
+      
+          if (horariosExistentes.length > 0) {
+            return res.status(400).json({
+              ok: false,
+              msg: 'Ya tienes registrado a este medico en el mismo dia a la misma hora ingresada. Los horarios pueden ser consecutivos, pero no deben superponerse. Por ejemplo, si un horario de mismo medico termina a las 12:00, el siguiente puede comenzar a partir de las 12:00 pero no antes. por favor consulta los horarios de tus medicos para asignar horarios disponibles'
+            });
+          }
+          
+      
+          const nuevoHorario = await HorarioMedic.create({ diaSemana, horaInicio, horaFinalizacion, rut_medico });
+          res.json({
+            ok: true,
+            horario: nuevoHorario
+          });
+      
+        } catch (error) {
+          console.log(error);
+          res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador'
+          });
+        }
+      };
+      
+      
+      
+      
       
 
 

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUsuario = exports.putUsuario = exports.CrearUsuario = exports.getUsuario = exports.getAllUsuarios = exports.getUsuarios = void 0;
+exports.deleteUsuario = exports.putUsuario = exports.CrearUsuario = exports.getUsuario = exports.getPacientesConCitasPagadasYEnCurso = exports.getAllUsuarios = exports.getUsuarios = void 0;
 const usuario_1 = __importDefault(require("../models/usuario"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const sequelize_1 = require("sequelize");
@@ -86,6 +86,40 @@ const getAllUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.getAllUsuarios = getAllUsuarios;
+const getPacientesConCitasPagadasYEnCurso = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Obtén los detalles de los pacientes con citas en estado 'en_curso' y que estén marcadas como 'pagadas'
+        const pacientesConCitasPagadas = yield cita_medica_1.default.findAll({
+            where: {
+                estado: ['en_curso', 'no_asistido']
+            },
+            include: [{
+                    model: usuario_1.default,
+                    as: 'paciente',
+                    where: {
+                        rol: {
+                            [sequelize_1.Op.ne]: 'ADMIN_ROLE' // Excluye a los usuarios con rol 'ADMIN_ROLE'
+                        }
+                    },
+                    attributes: {
+                        exclude: ['password', 'createdAt', 'updatedAt']
+                    }
+                }]
+        });
+        // Mapea los resultados para obtener solo los datos de los pacientes
+        const usuarios = pacientesConCitasPagadas.map(cita => cita.paciente);
+        res.json({
+            ok: true,
+            usuarios,
+            total: usuarios.length
+        });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).send('Error interno del servidor');
+    }
+});
+exports.getPacientesConCitasPagadasYEnCurso = getPacientesConCitasPagadasYEnCurso;
 const getUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const usuario = yield usuario_1.default.findByPk(id);
@@ -98,8 +132,15 @@ const getUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.getUsuario = getUsuario;
 const CrearUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { usuario, email, password, nombre, apellidos, rol } = req.body;
+    const { usuario, email, password, nombre, apellidos } = req.body;
     try {
+        // Verificar si ya existen usuarios en la base de datos
+        const existenUsuarios = yield usuario_1.default.count();
+        let rol = 'USER_ROLE'; // Rol por defecto
+        // Si no hay usuarios, asignar rol de ADMIN_ROLE al primer usuario
+        if (existenUsuarios === 0) {
+            rol = 'ADMIN_ROLE';
+        }
         // Verificar si el correo ya está registrado
         const existeEmail = yield usuario_1.default.findOne({ where: { email } });
         if (existeEmail) {
@@ -112,12 +153,12 @@ const CrearUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         const saltRounds = 10; // Número de rondas de cifrado
         const hashedPassword = yield bcrypt_1.default.hash(password, saltRounds);
         // Crear un nuevo usuario
-        const usuario = yield usuario_1.default.create(Object.assign(Object.assign({}, req.body), { password: hashedPassword }));
+        const nuevoUsuario = yield usuario_1.default.create(Object.assign(Object.assign({}, req.body), { password: hashedPassword, rol: rol }));
         // Generar el TOKEN - JWT
-        const token = yield jwt_1.default.instance.generarJWT(usuario.rut, nombre, apellidos, rol);
+        const token = yield jwt_1.default.instance.generarJWT(nuevoUsuario.rut, nombre, apellidos, rol);
         res.json({
             ok: true,
-            usuario,
+            usuario: nuevoUsuario,
             token,
         });
     }
@@ -130,23 +171,69 @@ const CrearUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.CrearUsuario = CrearUsuario;
+/*
+export const CrearUsuario = async( req: Request, res: Response ) => {
+  const { usuario, email, password, nombre, apellidos, rol } = req.body;
+
+    try {
+      // Verificar si el correo ya está registrado
+      const existeEmail = await Usuario.findOne({ where: { email } });
+  
+      if (existeEmail) {
+        return res.status(400).json({
+          ok: false,
+          msg: 'El correo ya está registrado',
+        });
+      }
+  
+      // Encriptar contraseña
+      const saltRounds = 10; // Número de rondas de cifrado
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+  
+      // Crear un nuevo usuario
+      const usuario = await Usuario.create({
+        ...req.body,
+        password: hashedPassword,
+      });
+  
+      // Generar el TOKEN - JWT
+      const token = await JwtGenerate.instance.generarJWT(usuario.rut, nombre, apellidos, rol);
+  
+      res.json({
+        ok: true,
+        usuario,
+        token,
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        ok: false,
+        msg: 'Error inesperado... revisar logs',
+      });
+    }
+  };
+
+*/
 const putUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
-        const { body } = req;
-        console.log(body);
-        // Buscar el médico por su ID
-        const medico = yield usuario_1.default.findByPk(id);
-        if (!medico) {
+        let { body } = req;
+        // Buscar el usuario por su ID
+        const usuario = yield usuario_1.default.findByPk(id);
+        if (!usuario) {
             return res.status(404).json({
                 ok: false,
-                msg: 'Médico no encontrado',
+                msg: 'Usuario no encontrado',
             });
         }
-        // Actualizar los campos del médico con los valores proporcionados en el cuerpo de la solicitud
-        yield medico.update(body);
+        // Si la contraseña no está presente o está vacía en la solicitud, elimínala del objeto body
+        if (!body.password || body.password.trim() === '') {
+            delete body.password;
+        }
+        // Actualizar los campos del usuario con los valores proporcionados en el cuerpo de la solicitud
+        yield usuario.update(body);
         res.json({
-            medico,
+            usuario,
         });
     }
     catch (error) {

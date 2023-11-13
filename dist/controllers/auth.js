@@ -43,6 +43,7 @@ const nodemailer = __importStar(require("nodemailer"));
 const jwt_1 = __importDefault(require("../helpers/jwt"));
 const emails_1 = __importDefault(require("../helpers/emails"));
 const medico_1 = __importDefault(require("../models/medico"));
+const info_clinica_1 = __importDefault(require("../models/info-clinica"));
 class Usuarios {
     constructor() {
         this.login = (req, res) => __awaiter(this, void 0, void 0, function* () {
@@ -174,7 +175,7 @@ class Usuarios {
                     return res.status(400).json({ ok: false, msg: 'Rol no definido' });
                 }
                 let userOrMedico;
-                if (rol === 'USER_ROLE' || rol === 'ADMIN_ROLE') { // Agregar el caso para 'ADMIN_ROLE'
+                if (rol === 'USER_ROLE' || rol === 'ADMIN_ROLE') {
                     userOrMedico = yield usuario_1.default.findOne({ where: { rut } });
                 }
                 else if (rol === 'MEDICO_ROLE') {
@@ -183,10 +184,12 @@ class Usuarios {
                 if (!userOrMedico) {
                     return res.status(404).json({ ok: false, msg: 'Usuario o médico no encontrado' });
                 }
-                // Genera un nuevo token y devuelve la información del usuario o médico
+                // Obtén la información de la clínica
+                const infoClinica = yield info_clinica_1.default.findOne();
+                // Genera un nuevo token y devuelve la información del usuario o médico junto con la info de la clínica
                 const newToken = yield jwt_1.default.instance.generarJWT(userOrMedico.rut, userOrMedico.nombre, userOrMedico.apellidos, rol);
                 const menu = (0, menu_frontend_1.getMenuFrontEnd)(rol);
-                return res.json({ token: newToken, userOrMedico, menu });
+                return res.json({ token: newToken, userOrMedico, menu, infoClinica: infoClinica });
             }
             catch (error) {
                 return res.status(500).json({ ok: false, msg: 'Error del servidor' });

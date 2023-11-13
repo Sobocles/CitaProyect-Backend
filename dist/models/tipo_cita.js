@@ -28,10 +28,6 @@ TipoCita.init({
     especialidad_medica: {
         type: sequelize_1.DataTypes.STRING,
     },
-    color_etiqueta: {
-        type: sequelize_1.DataTypes.STRING,
-        allowNull: true,
-    },
     duracion_cita: {
         type: sequelize_1.DataTypes.NUMBER,
         allowNull: true,

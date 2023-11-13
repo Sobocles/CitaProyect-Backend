@@ -5,41 +5,38 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const sequelize_1 = require("sequelize");
 const connection_1 = __importDefault(require("../db/connection"));
-// Define el modelo de HorarioLaboral
-class HorarioMedic extends sequelize_1.Model {
+class InfoClinica extends sequelize_1.Model {
 }
-// Define el modelo para el paciente
-// Inicializa el modelo
-HorarioMedic.init({
-    idHorario: {
+InfoClinica.init({
+    id: {
         type: sequelize_1.DataTypes.INTEGER,
         primaryKey: true,
-        autoIncrement: true,
+        autoIncrement: true // Asegúrate de que se autoincremente
     },
-    diaSemana: {
+    nombreClinica: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
     },
-    horaInicio: {
-        type: sequelize_1.DataTypes.TIME,
-        allowNull: false,
-    },
-    horaFinalizacion: {
-        type: sequelize_1.DataTypes.TIME,
-        allowNull: false,
-    },
-    rut_medico: {
+    direccion: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
     },
-    disponibilidad: {
-        type: sequelize_1.DataTypes.BOOLEAN,
-        allowNull: true,
+    telefono: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
     },
+    email: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+        validate: {
+            isEmail: true,
+        },
+    }
 }, {
     sequelize: connection_1.default,
-    modelName: 'HorarioMedic',
-    tableName: 'horarioMedicos'
+    modelName: 'InfoClinica',
+    tableName: 'infoclinica'
 });
-exports.default = HorarioMedic;
-//# sourceMappingURL=horario_medico.js.map
+exports.default = InfoClinica;
+//# sourceMappingURL=info-clinica.js.map

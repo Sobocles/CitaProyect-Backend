@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import HorarioClinica from '../models/horario_clinica';
 import bcrypt from 'bcrypt';
 import HorarioMedic from '../models/horario_medico';
+import InfoClinica from '../models/info-clinica';
 
 
 
@@ -168,4 +169,90 @@ export default class Horario_clinica {
             }
          
         }
+
+       
+        getInfoClinica = async (req: Request, res: Response) => {
+          console.log('OLLLLLAAAAA');
+          try {
+            
+      
+            // Obtén los detalles de todos los médicos
+            const Info = await InfoClinica.findAll({
+ 
+            });
+        
+            res.json({
+              ok: true,
+              Info,
+        
+            });
+          } catch (error) {
+            console.error(error);
+            res.status(500).json({
+              msg: 'Error en el servidor',
+            });
+          }
+        };
+
+        crearInfoClinica = async (req: Request, res: Response) => {
+          try {
+              // Verifica si ya existe información de la clínica
+              const existeInfo = await InfoClinica.findOne();
+              if (existeInfo) {
+                  return res.status(400).json({
+                      ok: false,
+                      msg: 'Ya existe información de la clínica. No se puede crear más de una, si desea cambiar la informacion de la clinica, porfacor elimine la informacion que ya existe e ingrese otra informacion.'
+                  });
+              }
+      
+              // Crea la nueva información de la clínica
+              const { nombreClinica, direccion, telefono, email } = req.body;
+
+              console.log(nombreClinica, direccion, telefono, email);
+
+              const nuevaInfo = await InfoClinica.create({ nombreClinica, direccion, telefono, email });
+              
+              res.json({
+                  ok: true,
+                  msg: 'Información de la clínica creada con éxito',
+                  nuevaInfo
+              });
+          } catch (error) {
+              console.error(error);
+              res.status(500).json({
+                  msg: 'Error en el servidor al crear la información de la clínica'
+              });
+          }
+      };
+
+      deleteInfoClinica = async (req:Request, res:Response) => {
+        try {
+          const { id } = req.params; // Obtener el nombre de la clínica del parámetro de la ruta
+      
+          // Buscar y eliminar la información de la clínica por su nombre
+          const resultado = await InfoClinica.destroy({
+            where: { id }
+          });
+      
+          if (resultado === 0) {
+            return res.status(404).json({
+              ok: false,
+              mensaje: 'Información de clínica no encontrada'
+            });
+          }
+      
+          res.status(200).json({
+            ok: true,
+            mensaje: 'Información de la clínica eliminada con éxito'
+          });
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({
+            ok: false,
+            mensaje: 'Error al eliminar la información de la clínica'
+          });
+        }
+      };
+    
+
 }

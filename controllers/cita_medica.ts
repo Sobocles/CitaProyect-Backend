@@ -4,6 +4,8 @@ import CitaMedica from '../models/cita_medica';
 import Usuario from '../models/usuario';
 import Medico from '../models/medico';
 import TipoCita from '../models/tipo_cita';
+import { Op } from 'sequelize';
+import Factura from '../models/factura';
 
 export default class Cita {
     private static _instance: Cita;
@@ -56,45 +58,148 @@ export default class Cita {
     
     
 
-        public getCita = async( req: Request , res: Response ) => {
-            const { id } = req.params;
+  public getCitasMedico = async (req: Request, res: Response) => {
+    const { rut_medico } = req.params;
+    const desde = Number(req.query.desde) || 0;
+    const limite = Number(req.query.limite) || 5;
 
-        try {
-            const medico = await CitaMedica.findByPk(id);
+    try {
+        // Contar total de citas para este médico
+        const totalCitas = await CitaMedica.count({
+            where: {
+                rut_medico: rut_medico,
+                estado: {
+                    [Op.or]: ['en_curso', 'pagado']
+                }
+            }
+        });
 
-            if (!medico) {
+        // Obtener las citas con paginación y detalles de paciente y médico
+        const citas = await CitaMedica.findAll({
+            where: {
+                rut_medico: rut_medico,
+                estado: {
+                    [Op.or]: ['en_curso', 'pagado']
+                }
+            },
+            include: [
+                {
+                    model: Usuario, // Modelo del paciente
+                    as: 'paciente', // Alias del paciente
+                    attributes: ['nombre', 'apellidos'] // Atributos del paciente
+                },
+                {
+                    model: Medico, // Modelo del médico
+                    as: 'medico', // Alias del médico
+                    attributes: ['nombre', 'apellidos'] // Atributos del médico
+                }
+            ],
+            attributes: { exclude: ['rut_paciente', 'rut_medico'] },
+            offset: desde,
+            limit: limite
+        });
+
+        if (!citas || citas.length === 0) {
             return res.status(404).json({
                 ok: false,
-                msg: 'Cita no encontrado',
-            });
-            }
-
-            res.json({
-            ok: true,
-            medico,
-            });
-        } catch (error) {
-            console.log(error);
-            res.status(500).json({
-            ok: false,
-            msg: 'Hable con el administrador',
+                msg: 'No se encontraron citas para este médico',
             });
         }
-        };
+
+        res.json({
+            ok: true,
+            citas,
+            total: totalCitas
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Error interno del servidor',
+        });
+    }
+};
+
+
+
+getCitaFactura = async (req: Request, res: Response) => {
+    const idCita = parseInt(req.params.idCita);
+    console.log('AQUI ESTA EL ID DE LA CITA QUE LLEGA AL METODO getCitaFactura', idCita);
+    if (!idCita) {
+        return res.status(400).json({
+            ok: false,
+            mensaje: 'Es necesario el ID de la cita médica'
+        });
+    }
+
+    try {
+        const citaMedica = await CitaMedica.findOne({
+            where: { idCita },
+            include: [
+                {
+                    model: Factura,
+                    as: 'factura',
+                    required: false  // Esto es para permitir citas sin factura
+                },
+                {
+                    model: Medico,
+                    as: 'medico',
+                    attributes: ['nombre', 'apellidos', 'especialidad_medica']  // Solo incluir los atributos necesarios
+                },
+                {
+                    model: Usuario,
+                    as: 'paciente',
+                    attributes: ['nombre', 'apellidos', 'email']  // Solo incluir los atributos necesarios
+                },
+                // Puedes incluir más asociaciones si son necesarias
+            ]
+        });
+        console.log('AQUI ESTA LA INFORMACION DE LA CITA MEDICA',citaMedica);
+
+        if (!citaMedica) {
+            return res.status(404).json({
+                ok: false,
+                mensaje: 'Cita médica no encontrada'
+            });
+        }
+
+        return res.json({
+            ok: true,
+            citaMedica
+        });
+    } catch (error) {
+      
+        if (error instanceof Error) {
+            console.error('Error al obtener la cita médica y su factura:', error.message);
+            return res.status(500).json({
+                ok: false,
+                mensaje: 'Error al obtener la cita médica y su factura',
+                error: error.message
+            });
+        } else {
+            // 
+            console.error('Error inesperado al obtener la cita médica y su factura');
+            return res.status(500).json({
+                ok: false,
+                mensaje: 'Error inesperado al obtener la cita médica y su factura'
+            });
+        }
+    }
+};
+
+
 
         
 
         public crearCita = async( req: Request, res: Response ) => {
           console.log('AQUI ESTA LLEGANDO',req);
-          let citaData = req.body.cita; // Accede directamente al objeto cita
+          let citaData = req.body.cita; 
       
           console.log('AQUI ESTA LLEGANDO',citaData);
-              
-          // No necesitas reasignar ruts, ya que están presentes en el objeto citaData
-          // No necesitas eliminar las propiedades paciente y medico, ya que no están presentes
+
       
           try {
-              // Verifica si ya existe una cita con el mismo ID
+   
               const citaExistente = await CitaMedica.findByPk(citaData.idCita);
                   
               if (citaExistente) {
@@ -119,6 +224,44 @@ export default class Cita {
               });
           }
       };
+
+      crearCitaPaciente = async (req: Request, res: Response) => {
+        // Desestructura los datos necesarios del cuerpo de la solicitud
+        const { rutMedico, hora_inicio, hora_fin, idTipoCita, especialidad, rutPaciente, fecha } = req.body;
+    
+        try {
+            // Crea la cita médica con el estado no_pagado
+            const cita = await CitaMedica.create({
+                rut_paciente: rutPaciente,
+                rut_medico: rutMedico,
+                fecha: fecha, // Asegúrate de que 'fecha' sea una instancia de Date válida
+                hora_inicio,
+                hora_fin,
+                estado: 'no_pagado', // Se establece el estado inicial como no_pagado
+                motivo: especialidad, // Usando el campo 'motivo' para almacenar la especialidad
+                idTipoCita,
+            });
+    
+            // Sequelize automáticamente añade el ID al objeto 'cita'
+            // Devuelve el ID de la cita y cualquier otro dato que desees
+            console.log('Cita creada con ID:', cita.idCita);
+            return res.status(201).json({
+                ok: true,
+                cita: {
+                    idCita: cita.idCita, // Asegúrate de que 'idCita' sea el nombre correcto de la propiedad en tu modelo
+                    // ... otros datos de la cita si son necesarios
+                }
+            });
+        } catch (error) {
+            console.error('Error al crear la cita médica:', error);
+            return res.status(500).json({
+                ok: false,
+                mensaje: 'Error al crear la cita médica',
+                error
+            });
+        }
+    };
+    
       
       
       

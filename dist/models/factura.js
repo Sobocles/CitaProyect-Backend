@@ -18,10 +18,22 @@ Factura.init({
         allowNull: false,
         references: {
             model: 'CitaMedica',
-            key: 'id_cita', // Clave en CitaMedica que es referenciada
+            key: 'id_cita',
         },
     },
-    detalles_pago: {
+    payment_method_id: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    transaction_amount: {
+        type: sequelize_1.DataTypes.FLOAT,
+        allowNull: false,
+    },
+    payment_status: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+    },
+    status_detail: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: true,
     },
@@ -39,4 +51,5 @@ Factura.init({
     sequelize: connection_1.default,
     modelName: 'Factura',
 });
+exports.default = Factura;
 //# sourceMappingURL=factura.js.map

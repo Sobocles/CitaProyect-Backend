@@ -7,6 +7,7 @@ import * as nodemailer from 'nodemailer';
 import JwtGenerate from '../helpers/jwt';
 import Email from '../helpers/emails';
 import Medico from '../models/medico';
+import InfoClinica from '../models/info-clinica';
 
 
 
@@ -162,37 +163,40 @@ public async enviarEmail(emailRecipient:string, username:string, newPassword:str
 
 
 public async revalidarToken(req: Request | any, res: Response) {
-  try {
-      const rut: string | undefined = req.rut;
-      const rol: string | undefined = req.rol;
+    try {
+        const rut: string | undefined = req.rut;
+        const rol: string | undefined = req.rol;
 
-      console.log(rut, rol);
+        console.log(rut, rol);
 
-      if (!rol) {
-          return res.status(400).json({ ok: false, msg: 'Rol no definido' });
-      }
+        if (!rol) {
+            return res.status(400).json({ ok: false, msg: 'Rol no definido' });
+        }
 
-      let userOrMedico;
-      if (rol === 'USER_ROLE' || rol === 'ADMIN_ROLE') { // Agregar el caso para 'ADMIN_ROLE'
-          userOrMedico = await Usuario.findOne({ where: { rut } });
-      } else if (rol === 'MEDICO_ROLE') {
-          userOrMedico = await Medico.findOne({ where: { rut } });
-      }
+        let userOrMedico;
+        if (rol === 'USER_ROLE' || rol === 'ADMIN_ROLE') {
+            userOrMedico = await Usuario.findOne({ where: { rut } });
+        } else if (rol === 'MEDICO_ROLE') {
+            userOrMedico = await Medico.findOne({ where: { rut } });
+        }
 
-      if (!userOrMedico) {
-          return res.status(404).json({ ok: false, msg: 'Usuario o médico no encontrado' });
-      }
+        if (!userOrMedico) {
+            return res.status(404).json({ ok: false, msg: 'Usuario o médico no encontrado' });
+        }
 
-      // Genera un nuevo token y devuelve la información del usuario o médico
-      const newToken = await JwtGenerate.instance.generarJWT(userOrMedico.rut, userOrMedico.nombre, userOrMedico.apellidos, rol);
+        // Obtén la información de la clínica
+        const infoClinica = await InfoClinica.findOne();
 
-      const menu = getMenuFrontEnd(rol);
+        // Genera un nuevo token y devuelve la información del usuario o médico junto con la info de la clínica
+        const newToken = await JwtGenerate.instance.generarJWT(userOrMedico.rut, userOrMedico.nombre, userOrMedico.apellidos, rol);
 
-      return res.json({ token: newToken, userOrMedico, menu });
+        const menu = getMenuFrontEnd(rol);
 
-  } catch (error) {
-      return res.status(500).json({ ok: false, msg: 'Error del servidor' });
-  }
+        return res.json({ token: newToken, userOrMedico, menu, infoClinica: infoClinica });
+
+    } catch (error) {
+        return res.status(500).json({ ok: false, msg: 'Error del servidor' });
+    }
 }
 
 

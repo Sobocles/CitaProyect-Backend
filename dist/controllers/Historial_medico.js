@@ -21,27 +21,32 @@ class Historial_Medico {
             res.json({ historial });
         });
         this.getHistorial = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            const { id } = req.params; // Puesto que tu ruta tiene '/:id'
-            const rut_paciente = id;
-            console.log('historiales', rut_paciente);
+            const { id } = req.params; // ID del paciente
+            const desde = Number(req.query.desde) || 0;
+            const limite = Number(req.query.limite) || 5;
             try {
-                const historiales = yield historial_medico_1.default.findAll({ where: { rut_paciente } });
-                if (historiales.length === 0) {
+                // Contar total de historiales para este paciente
+                const totalHistoriales = yield historial_medico_1.default.count({
+                    where: { rut_paciente: id }
+                });
+                // Si no hay historiales, devuelve una respuesta vacía
+                if (totalHistoriales === 0) {
                     return res.status(200).json({
                         ok: true,
                         msg: 'No hay historiales para el paciente',
-                        historiales: [] // Devuelve un arreglo vacío
+                        historiales: []
                     });
                 }
-                if (historiales.length === 0) {
-                    return res.status(404).json({
-                        ok: false,
-                        msg: 'Historiales no encontrados para el paciente',
-                    });
-                }
+                // Obtener los historiales con paginación
+                const historiales = yield historial_medico_1.default.findAll({
+                    where: { rut_paciente: id },
+                    offset: desde,
+                    limit: limite
+                });
                 res.json({
                     ok: true,
-                    historiales, // Devuelve todos los historiales médicos
+                    historiales,
+                    total: totalHistoriales // Total de historiales
                 });
             }
             catch (error) {

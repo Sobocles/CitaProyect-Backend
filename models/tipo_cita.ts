@@ -10,7 +10,6 @@ class TipoCita extends Model {
   public tipo_cita!: string;
   public precio!: number;
   public especialidad_medica!: string;
-  public color_etiqueta!: string;
   public duracion_cita!: number;
 
   // Puedes definir relaciones con otras tablas aquí si es necesario
@@ -37,10 +36,7 @@ TipoCita.init(
       type: DataTypes.STRING,
 
     },
-    color_etiqueta: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
+
     duracion_cita: {
       type: DataTypes.NUMBER,
       allowNull: true,

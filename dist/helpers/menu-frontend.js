@@ -3,18 +3,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getMenuFrontEnd = void 0;
 const getMenuFrontEnd = (rol = 'USER_ROLE') => {
     const adminMenu = [
+        { label: 'Inicio', url: '/inicio-instrucciones' },
         { label: 'Gestionar Pacientes', url: '/gestionar-pacientes' },
         { label: 'Gestionar Médicos', url: '/gestionar-medicos' },
         { label: 'Gestionar Horarios de Médicos', url: '/gestionar-horarios-medicos' },
         { label: 'Gestionar Citas', url: '/gestionar-cita' },
         { label: 'Gestionar Tipo de Cita', url: '/gestionar-tipo-cita' },
+        { label: 'Datos clinica', url: '/info-clinica' },
     ];
     const pacienteMenu = [
         { label: 'Agendar Cita', url: '/Agendar-cita' },
-        { label: 'historial', url: '/historial' }
+        { label: 'Revisar historial medico', url: '/historial' }
     ];
     const medicoMenu = [
-        { label: 'Gestionar Historiales', url: '/gestionar-historiales' },
+        { label: 'Redactar hitorial medico', url: '/agregar-historial' },
+        { label: 'Citas medicas del medico', url: '/ver-citas' },
     ];
     let menuItems = [];
     if (rol === 'ADMIN_ROLE') {

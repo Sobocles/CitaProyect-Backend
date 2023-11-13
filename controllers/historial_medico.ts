@@ -19,31 +19,37 @@ export default class Historial_Medico {
             res.json({ historial });
         }
 
-        getHistorial = async( req: Request , res: Response ) => {
-          const { id } = req.params; // Puesto que tu ruta tiene '/:id'
-          const rut_paciente = id;
-          console.log('historiales',rut_paciente);
+        getHistorial = async (req: Request, res: Response) => {
+          const { id } = req.params; // ID del paciente
+          const desde = Number(req.query.desde) || 0;
+          const limite = Number(req.query.limite) || 5;
       
           try {
-              const historiales = await HistorialMedico.findAll({ where: { rut_paciente } });
-              if (historiales.length === 0) {
-                return res.status(200).json({
-                    ok: true,
-                    msg: 'No hay historiales para el paciente',
-                    historiales: [] // Devuelve un arreglo vacío
-                });
-            }
+              // Contar total de historiales para este paciente
+              const totalHistoriales = await HistorialMedico.count({
+                  where: { rut_paciente: id }
+              });
       
-              if (historiales.length === 0) {
-                  return res.status(404).json({
-                      ok: false,
-                      msg: 'Historiales no encontrados para el paciente',
+              // Si no hay historiales, devuelve una respuesta vacía
+              if (totalHistoriales === 0) {
+                  return res.status(200).json({
+                      ok: true,
+                      msg: 'No hay historiales para el paciente',
+                      historiales: []
                   });
               }
       
+              // Obtener los historiales con paginación
+              const historiales = await HistorialMedico.findAll({
+                  where: { rut_paciente: id },
+                  offset: desde,
+                  limit: limite
+              });
+      
               res.json({
                   ok: true,
-                  historiales, // Devuelve todos los historiales médicos
+                  historiales, // Devuelve los historiales médicos paginados
+                  total: totalHistoriales // Total de historiales
               });
           } catch (error) {
               console.log(error);
@@ -53,6 +59,7 @@ export default class Historial_Medico {
               });
           }
       };
+      
       
 
         

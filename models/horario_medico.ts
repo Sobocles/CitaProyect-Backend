@@ -41,7 +41,7 @@ HorarioMedic.init(
     },
     disponibilidad: {
       type: DataTypes.BOOLEAN,
-      allowNull: false,
+      allowNull: true,
     },
 
   },

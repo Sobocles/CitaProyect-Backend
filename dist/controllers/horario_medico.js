@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const medico_1 = __importDefault(require("../models/medico"));
 const horario_medico_1 = __importDefault(require("../models/horario_medico"));
+const sequelize_1 = require("sequelize");
 class HorarioMedico {
     constructor() {
         /*
@@ -86,29 +87,52 @@ class HorarioMedico {
             }
         });
         this.CrearHorarioMedico = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            const medicoData = req.body;
-            console.log(medicoData);
+            const { diaSemana, horaInicio, horaFinalizacion, rut_medico } = req.body;
             try {
-                // Verifica si ya existe un médico con el mismo ID
-                const medicoExistente = yield horario_medico_1.default.findByPk(medicoData.id);
-                if (medicoExistente) {
+                // Buscar horarios existentes que puedan solaparse
+                const horariosExistentes = yield horario_medico_1.default.findAll({
+                    where: {
+                        rut_medico,
+                        diaSemana,
+                        [sequelize_1.Op.or]: [
+                            {
+                                horaInicio: {
+                                    [sequelize_1.Op.lt]: horaFinalizacion,
+                                    [sequelize_1.Op.ne]: horaFinalizacion
+                                },
+                                horaFinalizacion: {
+                                    [sequelize_1.Op.gt]: horaInicio
+                                }
+                            },
+                            {
+                                horaInicio: {
+                                    [sequelize_1.Op.lt]: horaFinalizacion
+                                },
+                                horaFinalizacion: {
+                                    [sequelize_1.Op.gt]: horaInicio,
+                                    [sequelize_1.Op.ne]: horaInicio
+                                }
+                            }
+                        ]
+                    }
+                });
+                if (horariosExistentes.length > 0) {
                     return res.status(400).json({
                         ok: false,
-                        msg: 'Ya existe un horario con el mismo ID',
+                        msg: 'Ya tienes registrado a este medico en el mismo dia a la misma hora ingresada. Los horarios pueden ser consecutivos, pero no deben superponerse. Por ejemplo, si un horario de mismo medico termina a las 12:00, el siguiente puede comenzar a partir de las 12:00 pero no antes. por favor consulta los horarios de tus medicos para asignar horarios disponibles'
                     });
                 }
-                // Crea un nuevo médico
-                const nuevoMedico = yield horario_medico_1.default.create(medicoData);
+                const nuevoHorario = yield horario_medico_1.default.create({ diaSemana, horaInicio, horaFinalizacion, rut_medico });
                 res.json({
                     ok: true,
-                    medico: nuevoMedico,
+                    horario: nuevoHorario
                 });
             }
             catch (error) {
                 console.log(error);
                 res.status(500).json({
                     ok: false,
-                    msg: 'Hable con el administrador',
+                    msg: 'Hable con el administrador'
                 });
             }
         });

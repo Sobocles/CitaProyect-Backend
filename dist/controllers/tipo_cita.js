@@ -86,6 +86,8 @@ class tipo_cita {
             try {
                 const { id } = req.params;
                 const { body } = req;
+                console.log('AQUI ESTA EL ID', id);
+                console.log('AQUI ESTA EL TIPO CITA', body);
                 // Buscar el médico por su ID
                 const medico = yield tipo_cita_1.default.findByPk(id);
                 if (!medico) {

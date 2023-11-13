@@ -13,16 +13,26 @@ router.get('/',[
     validarCampos.instance.validarCampos
 ], CitaMedica.instance.getCitas );
 
-router.get('/:id', [
+router.get('/:idCita', [
    
     validarCampos.instance.validarCampos
-], CitaMedica.instance.getCita );
+], CitaMedica.instance.getCitaFactura );
+
+router.get('/medico/:rut_medico', [
+   
+    validarCampos.instance.validarCampos
+], CitaMedica.instance.getCitasMedico );
 
 
 router.post('/', [
   
     validarCampos.instance.validarCampos
 ], CitaMedica.instance.crearCita );
+
+router.post('/crearCitapaciente', [
+  
+    validarCampos.instance.validarCampos
+], CitaMedica.instance.crearCitaPaciente );
 
 router.put('/:id',
     [

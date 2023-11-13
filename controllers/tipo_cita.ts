@@ -100,6 +100,8 @@ export default class tipo_cita {
             try {
               const { id } = req.params;
               const { body } = req;
+              console.log('AQUI ESTA EL ID',id);
+              console.log('AQUI ESTA EL TIPO CITA',body);
         
               // Buscar el médico por su ID
               const medico = await TipoCita.findByPk(id);

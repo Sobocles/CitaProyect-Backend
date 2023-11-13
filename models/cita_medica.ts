@@ -1,17 +1,42 @@
-import { Model, DataTypes } from 'sequelize';
+// cita_medica.ts
+import { Model, DataTypes, Association } from 'sequelize';
 import db from '../db/connection';
 import TipoCita from './tipo_cita';
+import Medico from './medico';
+import Usuario from './usuario';
 
-class CitaMedica extends Model {
-  public id_cita!: number;
+export interface CitaMedicaAttributes {
+  idCita?: number;
+  motivo: string;
+  rut_paciente: string;
+  rut_medico: string;
+  fecha: Date;
+  hora_inicio: string;
+  hora_fin: string;
+  estado: string;
+  descripcion?: string;
+  idTipoCita?: number;
+}
+
+export class CitaMedica extends Model<CitaMedicaAttributes> {
+  public idCita!: number;
   public motivo!: string;
   public rut_paciente!: string;
   public rut_medico!: string;
   public fecha!: Date;
   public hora_inicio!: string;
   public hora_fin!: string;
-  public estado!: string;  // Este campo ya existe
-  public descripcion!: string;
+  public estado!: string;
+  public descripcion?: string;
+  public idTipoCita?: number;
+  // Asociaciones
+  public readonly medico?: Medico;
+  public readonly paciente?: Usuario;
+
+  public static associations: {
+    medico: Association<CitaMedica, Medico>;
+    paciente: Association<CitaMedica, Usuario>;
+  };
 }
 
 CitaMedica.init(
@@ -29,7 +54,7 @@ CitaMedica.init(
       type: DataTypes.STRING,
       allowNull: false,
       references: {
-        model: 'Usuario',
+        model: 'Usuario',  // Asegúrate de que el nombre del modelo es correcto
         key: 'rut',
       },
     },
@@ -37,8 +62,8 @@ CitaMedica.init(
       type: DataTypes.STRING,
       allowNull: false,
       references: {
-        model: 'Medico',
-        key: 'id',
+        model: 'Medico',  // Asegúrate de que el nombre del modelo es correcto
+        key: 'rut',
       },
     },
     fecha: {
@@ -54,9 +79,9 @@ CitaMedica.init(
       allowNull: false,
     },
     estado: {
-      type: DataTypes.ENUM('en_curso', 'terminado', 'no_asistio'),  // Definido como ENUM
+      type: DataTypes.ENUM('en_curso', 'terminado', 'no_asistio','pagado','no_pagado'),
       allowNull: false,
-      defaultValue: 'en_curso'  // Valor por defecto cuando se crea una cita
+      defaultValue: 'en_curso',
     },
     descripcion: {
       type: DataTypes.STRING,
@@ -66,15 +91,17 @@ CitaMedica.init(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: TipoCita,
-        key: 'idTipo',
+        model: 'TipoCita',  // Asegúrate de que el nombre del modelo es correcto
+        key: 'idTipoCita',  // Asegúrate de que esta es la clave primaria en el modelo TipoCita
       }
     },
   },
   {
     sequelize: db,
     modelName: 'CitaMedica',
+    tableName: 'citamedicas'  // Si tienes un nombre de tabla específico
   }
 );
+
 
 export default CitaMedica;

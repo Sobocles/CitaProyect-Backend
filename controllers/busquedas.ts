@@ -50,8 +50,6 @@ export const getDocumentosColeccion = async (req: Request, res: Response) => {
             });
             break;
             case 'cita_medica':
-                console.log('AQUI ESTA LA TABLA', tabla);
-                console.log('AQUI ESTA LA BUSQUEDA', busqueda);
                 data = await CitaMedica.findAll({
                     attributes: ['idCita', 'motivo', 'fecha', 'hora_inicio', 'hora_fin', 'estado'],
                     include: [
@@ -86,7 +84,7 @@ export const getDocumentosColeccion = async (req: Request, res: Response) => {
             
               case 'tipo_cita':
                   data = await TipoCita.findAll({
-                      attributes: ['idTipo', 'tipo_cita', 'precio', 'especialidad_medica', 'color_etiqueta', 'duracion_cita'],
+                      attributes: ['idTipo', 'tipo_cita', 'precio', 'especialidad_medica', 'duracion_cita'],
                       where: {
                           especialidad_medica: {
                               [Op.like]: `%${busqueda}%`

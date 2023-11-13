@@ -3,11 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.CitaMedica = void 0;
+// cita_medica.ts
 const sequelize_1 = require("sequelize");
 const connection_1 = __importDefault(require("../db/connection"));
-const tipo_cita_1 = __importDefault(require("./tipo_cita"));
 class CitaMedica extends sequelize_1.Model {
 }
+exports.CitaMedica = CitaMedica;
 CitaMedica.init({
     idCita: {
         type: sequelize_1.DataTypes.INTEGER,
@@ -31,7 +33,7 @@ CitaMedica.init({
         allowNull: false,
         references: {
             model: 'Medico',
-            key: 'id',
+            key: 'rut',
         },
     },
     fecha: {
@@ -47,9 +49,9 @@ CitaMedica.init({
         allowNull: false,
     },
     estado: {
-        type: sequelize_1.DataTypes.ENUM('en_curso', 'terminado', 'no_asistio'),
+        type: sequelize_1.DataTypes.ENUM('en_curso', 'terminado', 'no_asistio', 'pagado', 'no_pagado'),
         allowNull: false,
-        defaultValue: 'en_curso' // Valor por defecto cuando se crea una cita
+        defaultValue: 'en_curso',
     },
     descripcion: {
         type: sequelize_1.DataTypes.STRING,
@@ -59,13 +61,14 @@ CitaMedica.init({
         type: sequelize_1.DataTypes.INTEGER,
         allowNull: true,
         references: {
-            model: tipo_cita_1.default,
-            key: 'idTipo',
+            model: 'TipoCita',
+            key: 'idTipoCita', // Asegúrate de que esta es la clave primaria en el modelo TipoCita
         }
     },
 }, {
     sequelize: connection_1.default,
     modelName: 'CitaMedica',
+    tableName: 'citamedicas' // Si tienes un nombre de tabla específico
 });
 exports.default = CitaMedica;
 //# sourceMappingURL=cita_medica.js.map

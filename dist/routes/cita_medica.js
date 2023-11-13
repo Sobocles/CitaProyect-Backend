@@ -10,12 +10,18 @@ const router = (0, express_1.Router)();
 router.get('/', [
     validar_campos_1.default.instance.validarCampos
 ], cita_medica_1.default.instance.getCitas);
-router.get('/:id', [
+router.get('/:idCita', [
     validar_campos_1.default.instance.validarCampos
-], cita_medica_1.default.instance.getCita);
+], cita_medica_1.default.instance.getCitaFactura);
+router.get('/medico/:rut_medico', [
+    validar_campos_1.default.instance.validarCampos
+], cita_medica_1.default.instance.getCitasMedico);
 router.post('/', [
     validar_campos_1.default.instance.validarCampos
 ], cita_medica_1.default.instance.crearCita);
+router.post('/crearCitapaciente', [
+    validar_campos_1.default.instance.validarCampos
+], cita_medica_1.default.instance.crearCitaPaciente);
 router.put('/:id', [
     validar_campos_1.default.instance.validarCampos
 ], cita_medica_1.default.instance.putCita);

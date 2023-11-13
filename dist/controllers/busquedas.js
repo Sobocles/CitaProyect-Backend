@@ -60,8 +60,6 @@ const getDocumentosColeccion = (req, res) => __awaiter(void 0, void 0, void 0, f
             });
             break;
         case 'cita_medica':
-            console.log('AQUI ESTA LA TABLA', tabla);
-            console.log('AQUI ESTA LA BUSQUEDA', busqueda);
             data = yield cita_medica_1.default.findAll({
                 attributes: ['idCita', 'motivo', 'fecha', 'hora_inicio', 'hora_fin', 'estado'],
                 include: [
@@ -93,7 +91,7 @@ const getDocumentosColeccion = (req, res) => __awaiter(void 0, void 0, void 0, f
             break;
         case 'tipo_cita':
             data = yield tipo_cita_1.default.findAll({
-                attributes: ['idTipo', 'tipo_cita', 'precio', 'especialidad_medica', 'color_etiqueta', 'duracion_cita'],
+                attributes: ['idTipo', 'tipo_cita', 'precio', 'especialidad_medica', 'duracion_cita'],
                 where: {
                     especialidad_medica: {
                         [sequelize_1.Op.like]: `%${busqueda}%`

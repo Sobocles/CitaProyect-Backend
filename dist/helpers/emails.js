@@ -45,6 +45,26 @@ class Email {
             });
         });
     }
+    enviarConfirmacionCita(detallesCita) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const { fecha, hora_inicio, medicoNombre, especialidad, pacienteNombre, emailPaciente } = detallesCita;
+            return yield this.transporter.sendMail({
+                from: '"Confirmación de Cita Médica" <smoralespincheira@gmail.com>',
+                to: emailPaciente,
+                subject: 'Confirmación de su cita médica',
+                html: `
+                <h1>Confirmación de Cita</h1>
+                <p>Estimado/a ${pacienteNombre},</p>
+                <p>Le confirmamos que su cita con ${medicoNombre}, especialista en ${especialidad}, está programada para el ${fecha} a las ${hora_inicio}.</p>
+                <p>Por favor, asegúrese de llegar 10 minutos antes de su hora programada.</p>
+                <p>Si tiene alguna pregunta, no dude en contactarnos.</p>
+                <br>
+                <p>Saludos cordiales,</p>
+                <p>El equipo de su centro médico</p>
+            `
+            });
+        });
+    }
 }
 exports.default = Email;
 //# sourceMappingURL=emails.js.map

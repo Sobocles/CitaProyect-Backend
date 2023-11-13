@@ -110,8 +110,7 @@ class Medicos {
                 const saltRounds = 10; // Número de rondas de cifrado
                 const hashedPassword = yield bcrypt_1.default.hash(password, saltRounds);
                 // Crea un nuevo médico
-                const nuevoMedico = yield medico_1.default.create(Object.assign(Object.assign({}, medicoData), { email: email, password: hashedPassword, rol: 'MEDICO_ROLE' // Asumiendo que el rol para los médicos es 'MEDICO'
-                 }));
+                const nuevoMedico = yield medico_1.default.create(Object.assign(Object.assign({}, medicoData), { email: email, password: hashedPassword, rol: 'MEDICO_ROLE' }));
                 // Genera el JWT
                 const token = yield jwt_1.default.instance.generarJWT(nuevoMedico.rut, nuevoMedico.nombre, nuevoMedico.apellidos, nuevoMedico.rol);
                 res.json({
