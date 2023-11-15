@@ -10,6 +10,9 @@ const router = (0, express_1.Router)();
 router.get('/', [
     validar_campos_1.default.instance.validarCampos
 ], horario_clinica_1.default.instance.obtenerHorariosClinica);
+router.get('/porEspecialidad', [
+    validar_campos_1.default.instance.validarCampos
+], horario_clinica_1.default.instance.obtenerEspecialidadesPorDia);
 router.get('/Infoclinica', [
     validar_campos_1.default.instance.validarCampos
 ], horario_clinica_1.default.instance.getInfoClinica);

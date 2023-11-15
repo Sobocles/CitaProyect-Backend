@@ -224,40 +224,117 @@ getCitaFactura = async (req: Request, res: Response) => {
               });
           }
       };
+/*
+      public crearCita = async(req: Request, res: Response) => {
+        const { fecha, ...datosCita } = req.body;
+      
+        try {
+          const fechaCita = new Date(fecha + 'T00:00:00'); // Asegura que la fecha se interpreta en la zona horaria local
+          const diaDeLaSemana = fechaCita.getDay();
+          const nombreDia = ['domingo', 'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'][diaDeLaSemana];
+      
+          const medicosDisponibles = await HorarioMedic.findAll({
+            where: {
+              diaSemana: nombreDia,
+              // Otras condiciones si son necesarias
+            }
+          });
+      
+          if (medicosDisponibles.length === 0) {
+            return res.status(400).json({
+              ok: false,
+              msg: `No hay médicos disponibles el día ${nombreDia}, por favor revisa el horario de tus medicos para seleccionar un día en que un médico trabaje.`
+            });
+          }
+      
+          // Volver a incluir la fecha en datosCita
+          const datosCitaConFecha = { ...datosCita, fecha };
+      
+          const citaExistente = await CitaMedica.findByPk(datosCitaConFecha.idCita);
+          if (citaExistente) {
+            return res.status(400).json({
+              ok: false,
+              msg: 'Ya existe una cita con el mismo ID',
+            });
+          }
+      
+          // Crea una nueva cita
+          const nuevaCita = await CitaMedica.create(datosCitaConFecha);
+      
+          res.json({
+            ok: true,
+            cita: nuevaCita,
+          });
+        } catch (error) {
+          console.log(error);
+          res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador',
+          });
+        }
+      }; */
+
+      verificarCitasUsuario = async(rut_paciente: string): Promise<boolean> => {
+        try {
+          const citaExistente = await CitaMedica.findOne({
+            where: {
+              rut_paciente,
+              estado: {
+                [Op.or]: ['pagado', 'en_curso']
+              }
+            }
+          });
+      
+          return !!citaExistente;
+        } catch (error) {
+          console.error('Error al verificar las citas del usuario:', error);
+          throw error; // O manejar el error según la lógica de tu aplicación
+        }
+      }
 
       crearCitaPaciente = async (req: Request, res: Response) => {
         // Desestructura los datos necesarios del cuerpo de la solicitud
         const { rutMedico, hora_inicio, hora_fin, idTipoCita, especialidad, rutPaciente, fecha } = req.body;
     
-        try {
-            // Crea la cita médica con el estado no_pagado
-            const cita = await CitaMedica.create({
-                rut_paciente: rutPaciente,
-                rut_medico: rutMedico,
-                fecha: fecha, // Asegúrate de que 'fecha' sea una instancia de Date válida
-                hora_inicio,
-                hora_fin,
-                estado: 'no_pagado', // Se establece el estado inicial como no_pagado
-                motivo: especialidad, // Usando el campo 'motivo' para almacenar la especialidad
-                idTipoCita,
-            });
+        const puedeAgendar = await this.verificarCitasUsuario(rutPaciente);
     
-            // Sequelize automáticamente añade el ID al objeto 'cita'
-            // Devuelve el ID de la cita y cualquier otro dato que desees
-            console.log('Cita creada con ID:', cita.idCita);
-            return res.status(201).json({
-                ok: true,
-                cita: {
-                    idCita: cita.idCita, // Asegúrate de que 'idCita' sea el nombre correcto de la propiedad en tu modelo
-                    // ... otros datos de la cita si son necesarios
-                }
-            });
-        } catch (error) {
-            console.error('Error al crear la cita médica:', error);
-            return res.status(500).json({
+        if (!puedeAgendar) {
+            try {
+                // Crea la cita médica con el estado no_pagado
+                const cita = await CitaMedica.create({
+                    rut_paciente: rutPaciente,
+                    rut_medico: rutMedico,
+                    fecha: fecha, // Asegúrate de que 'fecha' sea una instancia de Date válida
+                    hora_inicio,
+                    hora_fin,
+                    estado: 'no_pagado', // Se establece el estado inicial como no_pagado
+                    motivo: especialidad, // Usando el campo 'motivo' para almacenar la especialidad
+                    idTipoCita,
+                });
+    
+                // Sequelize automáticamente añade el ID al objeto 'cita'
+                // Devuelve el ID de la cita y cualquier otro dato que desees
+                console.log('Cita creada con ID:', cita.idCita);
+                return res.status(201).json({
+                    ok: true,
+                    cita: {
+                        idCita: cita.idCita, // Asegúrate de que 'idCita' sea el nombre correcto de la propiedad en tu modelo
+                        // ... otros datos de la cita si son necesarios
+                    }
+                });
+            } catch (error) {
+                console.error('Error al crear la cita médica:', error);
+                return res.status(500).json({
+                    ok: false,
+                    mensaje: 'Error al crear la cita médica',
+                    error
+                });
+            }
+        } else {
+            // Enviar mensaje al usuario informándole que ya tiene una cita programada
+            return res.status(400).json({
                 ok: false,
-                mensaje: 'Error al crear la cita médica',
-                error
+                mensaje: "Ya tienes una cita programada. Debes asistir y terminar tu cita actual para agendar otra."
             });
         }
     };

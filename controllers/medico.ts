@@ -90,7 +90,7 @@ export default class Medicos {
 
         
         CrearMedico = async(req: Request, res: Response) => {
-          const { email, password, ...medicoData } = req.body;
+          const { email, password, rut, telefono, ...medicoData } = req.body;
       
           try {
               // Verificar si el correo ya está registrado en la tabla de médicos
@@ -103,6 +103,26 @@ export default class Medicos {
                   });
               }
       
+              // Verificar si el RUT ya está registrado en la tabla de médicos
+              const existeRutMedico = await Medico.findOne({ where: { rut } });
+      
+              if (existeRutMedico) {
+                  return res.status(400).json({
+                      ok: false,
+                      msg: 'El RUT ya está registrado para otro médico',
+                  });
+              }
+      
+              // Verificar si el teléfono ya está registrado en la tabla de médicos
+              const existeTelefonoMedico = await Medico.findOne({ where: { telefono } });
+      
+              if (existeTelefonoMedico) {
+                  return res.status(400).json({
+                      ok: false,
+                      msg: 'El número de teléfono ya está registrado para otro médico',
+                  });
+              }
+      
               // Encriptar contraseña
               const saltRounds = 10; // Número de rondas de cifrado
               const hashedPassword = await bcrypt.hash(password, saltRounds);
@@ -110,7 +130,9 @@ export default class Medicos {
               // Crea un nuevo médico
               const nuevoMedico = await Medico.create({
                   ...medicoData,
-                  email: email,
+                  email,
+                  rut,
+                  telefono,
                   password: hashedPassword,
                   rol: 'MEDICO_ROLE' 
               });
@@ -120,7 +142,7 @@ export default class Medicos {
       
               res.json({
                   ok: true,
-                  msg: "Medico creado exitosamente",
+                  msg: "Registro completado con éxito. El médico ahora está habilitado para autenticarse y acceder al sistema con sus credenciales asignadas en la pantalla de login.",
                   medico: nuevoMedico,
                   token
               });
@@ -132,6 +154,7 @@ export default class Medicos {
               });
           }
       };
+      
       
       
       
@@ -173,6 +196,7 @@ export default class Medicos {
 
           public deleteMedico = async (req: Request, res: Response) => {
             const { rut } = req.params;
+            console.log('AQUI ESTA EL RUT DEL MEDICO',rut);
           
             try {
               const medico = await Medico.findByPk(rut);
@@ -185,7 +209,7 @@ export default class Medicos {
           
               // Eliminar los horarios relacionados con el médico
               await HorarioMedic.destroy({
-                where: { rutMedico: medico.rut }, // Asumiendo que el campo se llama "rutMedico"
+                where: { rut_medico: medico.rut }, // Asumiendo que el campo se llama "rutMedico"
               });
           
               // Ahora puedes eliminar al médico

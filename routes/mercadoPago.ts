@@ -1,5 +1,7 @@
 import {Router} from 'express'
 import { createOrder, receiveWebhook } from '../controllers/mercadoPago';
+import { getAllFacturas } from '../controllers/facturas';
+
 
 
 const router = Router()
@@ -7,6 +9,13 @@ const router = Router()
 router.post('/create-order', createOrder )
 
 router.get('/success',(req, res) => res.send('success'))
+
+router.get('/factura', getAllFacturas
+
+ );
+
+ router.delete('/factura/:id', 
+ );
 
 router.get('/failure',(req, res) => res.send('failure'))
 

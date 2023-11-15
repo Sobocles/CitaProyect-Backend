@@ -132,7 +132,7 @@ const getUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.getUsuario = getUsuario;
 const CrearUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { usuario, email, password, nombre, apellidos } = req.body;
+    const { usuario, email, password, nombre, apellidos, telefono } = req.body;
     try {
         // Verificar si ya existen usuarios en la base de datos
         const existenUsuarios = yield usuario_1.default.count();
@@ -149,8 +149,16 @@ const CrearUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 msg: 'El correo ya está registrado',
             });
         }
+        // Verificar si el teléfono ya está registrado
+        const existeTelefono = yield usuario_1.default.findOne({ where: { telefono } });
+        if (existeTelefono) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'El teléfono ya está registrado',
+            });
+        }
         // Encriptar contraseña
-        const saltRounds = 10; // Número de rondas de cifrado
+        const saltRounds = 10;
         const hashedPassword = yield bcrypt_1.default.hash(password, saltRounds);
         // Crear un nuevo usuario
         const nuevoUsuario = yield usuario_1.default.create(Object.assign(Object.assign({}, req.body), { password: hashedPassword, rol: rol }));

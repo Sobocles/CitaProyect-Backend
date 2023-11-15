@@ -20,7 +20,7 @@ getUsuario );
 router.post(
     '/',   
     [
-      ValidarJwt.instance.validarJwt,
+      
       check('nombre', 'El nombre es obligatorio').not().isEmpty(),
       check('apellidos', 'Los apellidos son obligatorios').not().isEmpty(),
       check('email', 'El correo es obligatorio').isEmail(),

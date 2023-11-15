@@ -37,7 +37,7 @@ export const createOrder = async (req: Request, res: Response) => {
         failure: "http://localhost:4200/payment-failure",
         pending: "http://localhost:8000/api/mercadoPago/pending"
       },
-      notification_url: "https://3dc2-2800-150-14e-fe7-b93e-d68-3c4f-580f.ngrok.io/api/mercadoPago/webhook"
+      notification_url: "https://702b-2800-150-14e-fe7-94e6-e2dd-926e-ad09.ngrok.io/api/mercadoPago/webhook"
     };
     
     try {
@@ -64,7 +64,7 @@ export const receiveWebhook = async (req: Request, res: Response) => {
         // Aquí se asume que la respuesta de MercadoPago viene en el formato esperado
         if (paymentData.status === 200 && paymentData.response) {
           const { response } = paymentData;
-
+          const fechaAprobacionPago = response.date_approved;
           // Crear el objeto factura con los datos relevantes
           const facturaData = {
             id_cita: parseInt(response.external_reference, 10),
@@ -74,6 +74,7 @@ export const receiveWebhook = async (req: Request, res: Response) => {
             status_detail: response.status_detail,
             monto_pagado: response.transaction_amount, // Asumiendo que esto es el monto pagado
             estado_pago: response.status === 'approved' ? 'completado' : 'pendiente',
+            fecha_pago: new Date(fechaAprobacionPago)
           };
 
           console.log('AQUI ESTA LA FACTURA',facturaData);

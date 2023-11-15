@@ -64,8 +64,14 @@ class tipo_cita {
             }
         });
         this.crearTipoCita = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            let { especialidad_medica } = req.body;
             const tipoCitaData = req.body;
-            console.log(tipoCitaData);
+            // Quitar acentos y convertir a minúsculas el campo especialidad_medica
+            if (especialidad_medica) {
+                especialidad_medica = especialidad_medica.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                tipoCitaData.especialidad_medica = especialidad_medica;
+            }
+            console.log(especialidad_medica);
             try {
                 // Crea un nuevo tipo de cita
                 const nuevoTipoCita = yield tipo_cita_1.default.create(tipoCitaData);
@@ -83,11 +89,17 @@ class tipo_cita {
             }
         });
         this.putTipoCita = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            let { especialidad_medica } = req.body;
+            const tipoCitaData = req.body;
+            // Quitar acentos y convertir a minúsculas el campo especialidad_medica
+            if (especialidad_medica) {
+                especialidad_medica = especialidad_medica.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                tipoCitaData.especialidad_medica = especialidad_medica;
+            }
+            console.log(especialidad_medica);
             try {
                 const { id } = req.params;
                 const { body } = req;
-                console.log('AQUI ESTA EL ID', id);
-                console.log('AQUI ESTA EL TIPO CITA', body);
                 // Buscar el médico por su ID
                 const medico = yield tipo_cita_1.default.findByPk(id);
                 if (!medico) {
@@ -113,6 +125,18 @@ class tipo_cita {
             }
         });
         this.deleteTipoCita = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const { id } = req.params; // Asegúrate de obtener el ID correctamente
+            try {
+                const tipoCita = yield tipo_cita_1.default.findByPk(id);
+                if (!tipoCita) {
+                    return res.status(404).json({ message: 'Tipo de cita no encontrado' });
+                }
+                yield tipoCita.destroy();
+                res.status(200).json({ message: 'Tipo de cita eliminado con éxito' });
+            }
+            catch (error) {
+                res.status(500).json({ message: 'Error al eliminar el tipo de cita', error });
+            }
         });
         this.getEspecialidades = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {

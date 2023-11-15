@@ -5,8 +5,7 @@ import TipoCita from '../models/tipo_cita';
 import horario_clinica from '../models/horario_clinica';
 import { Request, Response } from 'express';
 import CitaMedica from '../models/cita_medica';
-import db from '../db/connection';
-import tipo_cita from './tipo_cita';
+
 
 // Funciones Auxiliares:
 function timeToMinutes(time: string): number {

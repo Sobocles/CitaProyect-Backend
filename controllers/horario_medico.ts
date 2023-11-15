@@ -158,12 +158,13 @@ getHorariosMedicos = async (req: Request, res: Response) => {
             try {
               const { id } = req.params;
               const { body } = req;
-              console.log(body);
+              console.log('AQUI ESTA EL ID',id);
+              console.log('AQUI ESTA EL HORARIO MEDICO',body);
         
               // Buscar el médico por su ID
-              const medico = await HorarioMedic.findByPk(id);
+              const horarioMedico = await HorarioMedic.findByPk(id);
         
-              if (!medico) {
+              if (!horarioMedico) {
                 return res.status(404).json({
                   ok: false,
                   msg: 'Horario medico no encontrado',
@@ -171,12 +172,12 @@ getHorariosMedicos = async (req: Request, res: Response) => {
               }
         
               // Actualizar los campos del médico con los valores proporcionados en el cuerpo de la solicitud
-              await medico.update(body);
+              await horarioMedico.update(body);
         
               res.json({
                 ok: true,
                 msg: 'Horario medico actualizado correctamente',
-                medico,
+                horarioMedico,
               });
             } catch (error) {
               console.error(error);

@@ -6,7 +6,7 @@ import { Op } from 'sequelize';
 import JwtGenerate from '../helpers/jwt';
 import HistorialMedico from '../models/historial_medico';
 import CitaMedica from '../models/cita_medica';
-import db from '../db/connection';
+
 
 
 
@@ -136,8 +136,8 @@ export const getUsuario = async( req: Request , res: Response ) => {
   });
 }
 
-export const CrearUsuario = async( req: Request, res: Response ) => {
-  const { usuario, email, password, nombre, apellidos } = req.body;
+export const CrearUsuario = async(req: Request, res: Response) => {
+  const { usuario, email, password, nombre, apellidos, telefono } = req.body;
 
   try {
     // Verificar si ya existen usuarios en la base de datos
@@ -151,7 +151,6 @@ export const CrearUsuario = async( req: Request, res: Response ) => {
 
     // Verificar si el correo ya está registrado
     const existeEmail = await Usuario.findOne({ where: { email } });
-
     if (existeEmail) {
       return res.status(400).json({
         ok: false,
@@ -159,15 +158,24 @@ export const CrearUsuario = async( req: Request, res: Response ) => {
       });
     }
 
+    // Verificar si el teléfono ya está registrado
+    const existeTelefono = await Usuario.findOne({ where: { telefono } });
+    if (existeTelefono) {
+      return res.status(400).json({
+        ok: false,
+        msg: 'El teléfono ya está registrado',
+      });
+    }
+
     // Encriptar contraseña
-    const saltRounds = 10; // Número de rondas de cifrado
+    const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // Crear un nuevo usuario
     const nuevoUsuario = await Usuario.create({
       ...req.body,
       password: hashedPassword,
-      rol: rol, // Asignar el rol determinado
+      rol: rol,
     });
 
     // Generar el TOKEN - JWT
@@ -186,6 +194,7 @@ export const CrearUsuario = async( req: Request, res: Response ) => {
     });
   }
 };
+
 
 
 /*

@@ -140,21 +140,22 @@ class HorarioMedico {
             try {
                 const { id } = req.params;
                 const { body } = req;
-                console.log(body);
+                console.log('AQUI ESTA EL ID', id);
+                console.log('AQUI ESTA EL HORARIO MEDICO', body);
                 // Buscar el médico por su ID
-                const medico = yield horario_medico_1.default.findByPk(id);
-                if (!medico) {
+                const horarioMedico = yield horario_medico_1.default.findByPk(id);
+                if (!horarioMedico) {
                     return res.status(404).json({
                         ok: false,
                         msg: 'Horario medico no encontrado',
                     });
                 }
                 // Actualizar los campos del médico con los valores proporcionados en el cuerpo de la solicitud
-                yield medico.update(body);
+                yield horarioMedico.update(body);
                 res.json({
                     ok: true,
                     msg: 'Horario medico actualizado correctamente',
-                    medico,
+                    horarioMedico,
                 });
             }
             catch (error) {

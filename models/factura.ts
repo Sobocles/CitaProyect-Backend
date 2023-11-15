@@ -1,3 +1,95 @@
+import { Model, DataTypes, Association } from 'sequelize';
+import db from '../db/connection';
+import { CitaMedica } from './cita_medica'; // Asegúrate de que este importe es correcto
+
+// Define la interfaz para los atributos de Factura
+export interface FacturaAttributes {
+    id_factura?: number;
+    id_cita: number;
+    payment_method_id: string;
+    transaction_amount: number;
+    payment_status: string;
+    status_detail: string;
+    monto_pagado: number;
+    estado_pago: string;
+    fecha_pago: Date;
+    citaMedica?: CitaMedica; // Incluye la asociación con CitaMedica
+}
+
+// Extiende Model con FacturaAttributes
+export class Factura extends Model<FacturaAttributes> implements FacturaAttributes {
+    public id_factura!: number;
+    public id_cita!: number;
+    public payment_method_id!: string;
+    public transaction_amount!: number;
+    public payment_status!: string;
+    public status_detail!: string;
+    public monto_pagado!: number;
+    public estado_pago!: string;
+    public fecha_pago!: Date;
+    public citaMedica?: CitaMedica;
+
+    // Asociaciones
+    public static associations: {
+        citaMedica: Association<Factura, CitaMedica>;
+    };
+}
+
+// Inicialización del modelo Factura
+Factura.init({
+    id_factura: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+    },
+    id_cita: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+            model: 'CitaMedica',
+            key: 'id_cita',
+        },
+    },
+    payment_method_id: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    transaction_amount: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+    },
+    payment_status: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    status_detail: {
+        type: DataTypes.STRING,
+        allowNull: true,
+    },
+    monto_pagado: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+    },
+    estado_pago: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'pendiente',
+    },
+    fecha_pago: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+}, {
+    sequelize: db,
+    modelName: 'Factura',
+});
+
+
+export default Factura;
+
+
+
+/*
 import { DataTypes, Model } from 'sequelize';
 import db from '../db/connection';
 
@@ -59,3 +151,7 @@ Factura.init({
 });
 
 export default Factura;
+
+
+
+*/

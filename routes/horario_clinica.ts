@@ -15,6 +15,12 @@ router.get('/',[
     validarCampos.instance.validarCampos
 ],Horario_clinica.instance.obtenerHorariosClinica );
 
+router.get('/porEspecialidad',[
+
+  
+    validarCampos.instance.validarCampos
+],Horario_clinica.instance.obtenerEspecialidadesPorDia );
+
 router.get('/Infoclinica',[
 
   

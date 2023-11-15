@@ -96,7 +96,7 @@ class Medicos {
             }
         });
         this.CrearMedico = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            const _a = req.body, { email, password } = _a, medicoData = __rest(_a, ["email", "password"]);
+            const _a = req.body, { email, password, rut, telefono } = _a, medicoData = __rest(_a, ["email", "password", "rut", "telefono"]);
             try {
                 // Verificar si el correo ya está registrado en la tabla de médicos
                 const existeEmailMedico = yield medico_1.default.findOne({ where: { email } });
@@ -106,16 +106,34 @@ class Medicos {
                         msg: 'El correo ya está registrado para otro médico',
                     });
                 }
+                // Verificar si el RUT ya está registrado en la tabla de médicos
+                const existeRutMedico = yield medico_1.default.findOne({ where: { rut } });
+                if (existeRutMedico) {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: 'El RUT ya está registrado para otro médico',
+                    });
+                }
+                // Verificar si el teléfono ya está registrado en la tabla de médicos
+                const existeTelefonoMedico = yield medico_1.default.findOne({ where: { telefono } });
+                if (existeTelefonoMedico) {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: 'El número de teléfono ya está registrado para otro médico',
+                    });
+                }
                 // Encriptar contraseña
                 const saltRounds = 10; // Número de rondas de cifrado
                 const hashedPassword = yield bcrypt_1.default.hash(password, saltRounds);
                 // Crea un nuevo médico
-                const nuevoMedico = yield medico_1.default.create(Object.assign(Object.assign({}, medicoData), { email: email, password: hashedPassword, rol: 'MEDICO_ROLE' }));
+                const nuevoMedico = yield medico_1.default.create(Object.assign(Object.assign({}, medicoData), { email,
+                    rut,
+                    telefono, password: hashedPassword, rol: 'MEDICO_ROLE' }));
                 // Genera el JWT
                 const token = yield jwt_1.default.instance.generarJWT(nuevoMedico.rut, nuevoMedico.nombre, nuevoMedico.apellidos, nuevoMedico.rol);
                 res.json({
                     ok: true,
-                    msg: "Medico creado exitosamente",
+                    msg: "Registro completado con éxito. El médico ahora está habilitado para autenticarse y acceder al sistema con sus credenciales asignadas en la pantalla de login.",
                     medico: nuevoMedico,
                     token
                 });
@@ -157,6 +175,7 @@ class Medicos {
         });
         this.deleteMedico = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { rut } = req.params;
+            console.log('AQUI ESTA EL RUT DEL MEDICO', rut);
             try {
                 const medico = yield medico_1.default.findByPk(rut);
                 if (!medico) {
@@ -166,7 +185,7 @@ class Medicos {
                 }
                 // Eliminar los horarios relacionados con el médico
                 yield horario_medico_1.default.destroy({
-                    where: { rutMedico: medico.rut }, // Asumiendo que el campo se llama "rutMedico"
+                    where: { rut_medico: medico.rut }, // Asumiendo que el campo se llama "rutMedico"
                 });
                 // Ahora puedes eliminar al médico
                 yield medico.destroy();

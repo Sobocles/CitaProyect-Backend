@@ -68,11 +68,19 @@ export default class tipo_cita {
         }
         };
 
+  
         
 
         crearTipoCita = async (req: Request, res: Response) => {
+          let { especialidad_medica } = req.body;
           const tipoCitaData = req.body;
-          console.log(tipoCitaData);
+        
+          // Quitar acentos y convertir a minúsculas el campo especialidad_medica
+          if (especialidad_medica) {
+            especialidad_medica = especialidad_medica.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+            tipoCitaData.especialidad_medica = especialidad_medica;
+          }
+          console.log(especialidad_medica);
           
           try {
             // Crea un nuevo tipo de cita
@@ -97,11 +105,19 @@ export default class tipo_cita {
 
 
           public putTipoCita = async (req: Request, res: Response) => {
+            let { especialidad_medica } = req.body;
+            const tipoCitaData = req.body;
+          
+            // Quitar acentos y convertir a minúsculas el campo especialidad_medica
+            if (especialidad_medica) {
+              especialidad_medica = especialidad_medica.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+              tipoCitaData.especialidad_medica = especialidad_medica;
+            }
+            console.log(especialidad_medica);
             try {
               const { id } = req.params;
               const { body } = req;
-              console.log('AQUI ESTA EL ID',id);
-              console.log('AQUI ESTA EL TIPO CITA',body);
+         
         
               // Buscar el médico por su ID
               const medico = await TipoCita.findByPk(id);
@@ -133,9 +149,21 @@ export default class tipo_cita {
 
 
 
-        deleteTipoCita= async (req: Request, res: Response) => {
-
-    };
+          public deleteTipoCita = async (req: Request, res: Response) => {
+            const { id } = req.params; // Asegúrate de obtener el ID correctamente
+        
+            try {
+                const tipoCita = await TipoCita.findByPk(id);
+                if (!tipoCita) {
+                    return res.status(404).json({ message: 'Tipo de cita no encontrado' });
+                }
+        
+                await tipoCita.destroy();
+                res.status(200).json({ message: 'Tipo de cita eliminado con éxito' });
+            } catch (error) {
+                res.status(500).json({ message: 'Error al eliminar el tipo de cita', error });
+            }
+        };
 
     getEspecialidades = async(req: Request, res: Response) => {
       try {

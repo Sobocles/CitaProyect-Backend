@@ -15,10 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const horario_clinica_1 = __importDefault(require("../models/horario_clinica"));
 const horario_medico_1 = __importDefault(require("../models/horario_medico"));
 const info_clinica_1 = __importDefault(require("../models/info-clinica"));
+const medico_1 = __importDefault(require("../models/medico"));
 class Horario_clinica {
     constructor() {
         this.obtenerHorariosClinica = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            console.log('ola');
             try {
                 const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
                 const horariosClinica = [];
@@ -217,6 +217,45 @@ class Horario_clinica {
     }
     static get instance() {
         return this._instance || (this._instance = new Horario_clinica());
+    }
+    obtenerEspecialidadesPorDia(req, res) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const horarios = yield horario_medico_1.default.findAll({
+                    include: [{
+                            model: medico_1.default,
+                            attributes: ['especialidad_medica'],
+                            as: 'medico'
+                        }],
+                    attributes: ['diaSemana'],
+                    group: ['diaSemana', 'medico.especialidad_medica'],
+                    order: [['diaSemana', 'ASC']],
+                    raw: true,
+                });
+                const especialidadesPorDia = {};
+                horarios.forEach(horario => {
+                    const dia = horario.diaSemana;
+                    const especialidad = horario['medico.especialidad_medica'];
+                    if (!especialidadesPorDia[dia]) {
+                        especialidadesPorDia[dia] = [];
+                    }
+                    if (especialidad && !especialidadesPorDia[dia].includes(especialidad)) {
+                        especialidadesPorDia[dia].push(especialidad);
+                    }
+                });
+                const ordenDias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+                const especialidadesOrdenadas = {};
+                ordenDias.forEach(dia => {
+                    if (especialidadesPorDia[dia]) {
+                        especialidadesOrdenadas[dia] = especialidadesPorDia[dia];
+                    }
+                });
+                res.json(especialidadesOrdenadas);
+            }
+            catch (error) {
+                res.status(500).send({ message: 'Error al obtener las especialidades por día' });
+            }
+        });
     }
 }
 exports.default = Horario_clinica;
