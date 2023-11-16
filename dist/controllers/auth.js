@@ -55,7 +55,13 @@ class Usuarios {
                 // Si no se encuentra un Usuario, busca un Medico
                 if (!userOrMedico) {
                     userOrMedico = yield medico_1.default.findOne({ where: { email } });
-                    console.log('medico ', userOrMedico);
+                    // Si se encuentra un Médico, verifica si está activo
+                    if (userOrMedico && userOrMedico.estado === 'inactivo') {
+                        return res.status(403).json({
+                            ok: false,
+                            msg: 'Médico inactivo, contacte al administrador',
+                        });
+                    }
                 }
                 // Si tampoco se encuentra un Medico, retorna un error
                 if (!userOrMedico) {
@@ -72,7 +78,6 @@ class Usuarios {
                         msg: 'Contraseña no válida',
                     });
                 }
-                console.log(userOrMedico.rol);
                 // Generar el TOKEN - JWT
                 let token;
                 if (userOrMedico instanceof usuario_1.default) {
@@ -100,6 +105,68 @@ class Usuarios {
     static get instance() {
         return this._instance || (this._instance = new Usuarios());
     }
+    /*
+    
+      login = async (req: Request, res: Response) => {
+        const { email, password } = req.body;
+    
+    
+    
+        let userOrMedico: Usuario | Medico | null;
+    
+        try {
+            // Intenta encontrar un Usuario con el email
+            userOrMedico = await Usuario.findOne({ where: { email } });
+      
+    
+            // Si no se encuentra un Usuario, busca un Medico
+            if (!userOrMedico) {
+                userOrMedico = await Medico.findOne({ where: { email } });
+                console.log('medico ',userOrMedico);
+            }
+    
+            // Si tampoco se encuentra un Medico, retorna un error
+            if (!userOrMedico) {
+                return res.status(404).json({
+                    ok: false,
+                    msg: 'Email no encontrado',
+                });
+            }
+    
+            // Verificar contraseña
+            const validPassword = bcrypt.compareSync(password, userOrMedico.password);
+            if (!validPassword) {
+                return res.status(400).json({
+                    ok: false,
+                    msg: 'Contraseña no válida',
+                });
+            }
+            console.log(userOrMedico.rol);
+            // Generar el TOKEN - JWT
+            let token;
+            if (userOrMedico instanceof Usuario) {
+              token = await JwtGenerate.instance.generarJWT(userOrMedico.rut, userOrMedico.nombre, userOrMedico.apellidos, userOrMedico.rol);
+          } else if (userOrMedico instanceof Medico) {
+              token = await JwtGenerate.instance.generarJWT(userOrMedico.rut, userOrMedico.nombre, userOrMedico.apellidos, userOrMedico.rol);
+          }
+          
+    
+            res.json({
+                ok: true,
+                userOrMedico,
+                token,
+                menu: getMenuFrontEnd(userOrMedico.rol),
+            });
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                ok: false,
+                msg: 'Hable con el administrador',
+            });
+        }
+    };
+    
+    */
     recuperarPassword(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
             const { nombre, email } = req.body;

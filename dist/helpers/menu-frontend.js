@@ -5,10 +5,10 @@ const getMenuFrontEnd = (rol = 'USER_ROLE') => {
     const adminMenu = [
         { label: 'Inicio', url: '/inicio-instrucciones' },
         { label: 'Gestionar Pacientes', url: '/gestionar-pacientes' },
+        { label: 'Gestionar Tipo de Cita', url: '/gestionar-tipo-cita' },
         { label: 'Gestionar Médicos', url: '/gestionar-medicos' },
         { label: 'Gestionar Horarios de Médicos', url: '/gestionar-horarios-medicos' },
         { label: 'Gestionar Citas', url: '/gestionar-cita' },
-        { label: 'Gestionar Tipo de Cita', url: '/gestionar-tipo-cita' },
         { label: 'Datos clinica', url: '/info-clinica' },
         { label: 'Ver facturas', url: '/factura' },
     ];

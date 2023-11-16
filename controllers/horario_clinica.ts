@@ -232,6 +232,55 @@ export default class Horario_clinica {
       
       public async obtenerEspecialidadesPorDia(req: Request, res: Response) {
         try {
+            const horarios: HorarioConEspecialidad[] = await HorarioMedic.findAll({
+                include: [{
+                    model: Medico,
+                    attributes: ['especialidad_medica'],
+                    as: 'medico',
+                    where: {
+                        estado: 'activo' // Solo incluye médicos activos
+                    }
+                }],
+                attributes: ['diaSemana'],
+                group: ['diaSemana', 'medico.especialidad_medica'],
+                order: [['diaSemana', 'ASC']],
+                raw: true,
+            }) as unknown as HorarioConEspecialidad[];
+    
+            const especialidadesPorDia: {[key: string]: string[]} = {};
+            horarios.forEach(horario => {
+                const dia = horario.diaSemana;
+                const especialidad = horario['medico.especialidad_medica'];
+    
+                if (!especialidadesPorDia[dia]) {
+                    especialidadesPorDia[dia] = [];
+                }
+    
+                if (especialidad && !especialidadesPorDia[dia].includes(especialidad)) {
+                    especialidadesPorDia[dia].push(especialidad);
+                }
+            });
+    
+            const ordenDias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
+            const especialidadesOrdenadas: {[key: string]: string[]} = {};
+    
+            ordenDias.forEach(dia => {
+                if (especialidadesPorDia[dia]) {
+                    especialidadesOrdenadas[dia] = especialidadesPorDia[dia];
+                }
+            });
+    
+            res.json(especialidadesOrdenadas);
+        } catch (error) {
+            res.status(500).send({ message: 'Error al obtener las especialidades por día' });
+        }
+    }
+    
+      
+    
+ /*
+       public async obtenerEspecialidadesPorDia(req: Request, res: Response) {
+        try {
           const horarios: HorarioConEspecialidad[] = await HorarioMedic.findAll({
             include: [{
               model: Medico,
@@ -272,9 +321,10 @@ export default class Horario_clinica {
           res.status(500).send({ message: 'Error al obtener las especialidades por día' });
         }
       }
-      
-    
-    
+ 
+
+
+ */
     
 
       deleteInfoClinica = async (req:Request, res:Response) => {

@@ -6,6 +6,7 @@ import { Op } from 'sequelize';
 import JwtGenerate from '../helpers/jwt';
 import HistorialMedico from '../models/historial_medico';
 import CitaMedica from '../models/cita_medica';
+import Factura from '../models/factura';
 
 
 
@@ -277,33 +278,41 @@ export const CrearUsuario = async( req: Request, res: Response ) => {
   };
   
 
+  export const deleteUsuario = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+        const usuario = await Usuario.findByPk(id);
 
-export const deleteUsuario = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  console.log(id);
-  try {
-    const usuario = await Usuario.findByPk(id);
+        if (!usuario) {
+            return res.status(404).json({ msg: 'No existe un usuario con el id ' + id });
+        }
 
-    if (!usuario) {
-      return res.status(404).json({
-        msg: 'No existe un usuario con el id ' + id,
-      });
+        // Verificar si el usuario tiene citas médicas asociadas
+        const citas = await CitaMedica.findAll({ where: { rut_paciente: usuario.rut } });
+
+        // Eliminar todas las facturas asociadas a las citas
+        for (const cita of citas) {
+            await Factura.destroy({ where: { id_cita: cita.idCita } });
+            await cita.destroy(); // Elimina la cita después de eliminar las facturas
+        }
+
+        // Eliminar historiales médicos del usuario
+        await HistorialMedico.destroy({ where: { rut_paciente: usuario.rut } });
+
+        // Eliminar al usuario
+        await usuario.destroy();
+
+        res.json({ msg: `Usuario ${usuario.nombre} y todas sus entidades relacionadas han sido eliminados correctamente.` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: 'Error en el servidor' });
     }
-
-    // Antes de eliminar al usuario, elimina los registros de historial relacionados
-    await HistorialMedico.destroy({
-      where: { rut_paciente: usuario.rut }, // Asumiendo que el campo se llama "rut_usuario"
-    });
-
-    // Ahora puedes eliminar al usuario
-    await usuario.destroy();
-
-    res.json({ msg: 'Usuario y sus registros de historial eliminados correctamente' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      msg: 'Error en el servidor',
-    });
-  }
 };
 
+
+
+
+
+
+  
+  

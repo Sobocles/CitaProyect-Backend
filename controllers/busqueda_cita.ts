@@ -128,7 +128,8 @@ export async function buscarHorarioMedico(tipoCita: any, diaSemana: string) {
     if (tipoCita.tipo_cita === 'Consulta Especialidad') {
         const medicosConEspecialidad = await Medico.findAll({
             where: {
-                especialidad_medica: tipoCita.especialidad_medica
+                especialidad_medica: tipoCita.especialidad_medica,
+                estado: 'activo'  // Filtrar solo los médicos activos
             }
         });
         
@@ -150,6 +151,9 @@ export async function buscarHorarioMedico(tipoCita: any, diaSemana: string) {
                         model: Medico,
                         as: 'medico',
                         attributes: ['rut', 'nombre', 'apellidos', 'especialidad_medica'],
+                        where: {
+                            estado: 'activo'  // Incluir solo médicos activos
+                        }
                     },
                 ],
             });
@@ -163,8 +167,8 @@ export async function buscarHorarioMedico(tipoCita: any, diaSemana: string) {
             horafinalizacion: row.horaFinalizacion,
             especialidad_medica: tipoCita.tipo_cita === 'Consulta general' ? row.medico.especialidad_medica : row.medico.especialidad_medica
         }));
-} return [];
-
+    }
+    return [];
 }
 
 

@@ -27,6 +27,70 @@ export default class Usuarios {
   login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
+    let userOrMedico: Usuario | Medico | null;
+
+    try {
+        // Intenta encontrar un Usuario con el email
+        userOrMedico = await Usuario.findOne({ where: { email } });
+
+        // Si no se encuentra un Usuario, busca un Medico
+        if (!userOrMedico) {
+            userOrMedico = await Medico.findOne({ where: { email } });
+
+            // Si se encuentra un Médico, verifica si está activo
+            if (userOrMedico && userOrMedico.estado === 'inactivo') {
+                return res.status(403).json({
+                    ok: false,
+                    msg: 'Médico inactivo, contacte al administrador',
+                });
+            }
+        }
+
+        // Si tampoco se encuentra un Medico, retorna un error
+        if (!userOrMedico) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'Email no encontrado',
+            });
+        }
+
+        // Verificar contraseña
+        const validPassword = bcrypt.compareSync(password, userOrMedico.password);
+        if (!validPassword) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Contraseña no válida',
+            });
+        }
+
+        // Generar el TOKEN - JWT
+        let token;
+        if (userOrMedico instanceof Usuario) {
+            token = await JwtGenerate.instance.generarJWT(userOrMedico.rut, userOrMedico.nombre, userOrMedico.apellidos, userOrMedico.rol); 
+        } else if (userOrMedico instanceof Medico) {
+            token = await JwtGenerate.instance.generarJWT(userOrMedico.rut, userOrMedico.nombre, userOrMedico.apellidos, userOrMedico.rol);
+        }
+
+        res.json({
+            ok: true,
+            userOrMedico,
+            token,
+            menu: getMenuFrontEnd(userOrMedico.rol),
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Hable con el administrador',
+        });
+    }
+};
+
+/*
+
+  login = async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+
 
 
     let userOrMedico: Usuario | Medico | null;
@@ -83,7 +147,7 @@ export default class Usuarios {
     }
 };
 
-
+*/
   
 
   

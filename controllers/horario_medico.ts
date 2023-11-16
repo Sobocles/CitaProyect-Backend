@@ -2,8 +2,9 @@ import { Request, Response } from 'express';
 import Medico from '../models/medico';
 import bcrypt from 'bcrypt';
 import HorarioMedic from '../models/horario_medico';
-import { Op } from 'sequelize';
+import { DataTypes, Op } from 'sequelize';
 import TipoCita from '../models/tipo_cita';
+
 
 
 export default class HorarioMedico {
@@ -29,6 +30,64 @@ export default class HorarioMedico {
 
 
 */
+
+// Suponiendo que esta es la función para obtener los horarios médicos
+getHorariosMedicos = async (req: Request, res: Response) => {
+  console.log('Obteniendo horarios médicos...');
+  try {
+      const desde = Number(req.query.desde) || 0;
+      const especialidadesValidas = await TipoCita.findAll({
+          attributes: ['especialidad_medica']
+      });
+      const especialidades = especialidadesValidas.map(ec => ec.especialidad_medica);
+
+      // Obtén el total de horarios de médicos activos
+      const totalHorarios = await HorarioMedic.count({
+          include: [{
+              model: Medico,
+              as: 'medico',
+              where: { estado: 'activo' } // Contar solo horarios de médicos activos
+          }]
+      });
+
+      // Obtén los detalles de todos los horarios de médicos activos
+      const horarios = await HorarioMedic.findAll({
+          include: [{
+              model: Medico,
+              as: 'medico',
+              attributes: ['nombre', 'apellidos', 'especialidad_medica'],
+              where: {
+                  estado: 'activo', // Filtrar por médicos activos
+                  especialidad_medica: {
+                    [Op.in]: especialidades
+                  }
+              }
+          }],
+          offset: desde,
+          limit: 5,
+      });
+
+      // Filtrar horarios para excluir especialidades no válidas
+      const horariosFiltrados = horarios.filter(horario => 
+          horario.medico && especialidades.includes(horario.medico.especialidad_medica)
+      );
+
+      res.json({
+          ok: true,
+          horarios: horariosFiltrados,
+          total: totalHorarios,
+      });
+  } catch (error) {
+      console.error('Error al obtener horario:', error);
+      res.status(500).json({
+          msg: 'Error en el servidor',
+      });
+  }
+};
+
+
+/*
+
 
 getHorariosMedicos = async (req: Request, res: Response) => {
   console.log('aqui estoy obteniendo los horarios medicos');
@@ -82,6 +141,9 @@ getHorariosMedicos = async (req: Request, res: Response) => {
       });
   }
 };
+
+
+*/
         getHorarioMedico = async( req: Request , res: Response ) => {
           const { id } = req.params;
           console.log(10);

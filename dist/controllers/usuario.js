@@ -19,6 +19,7 @@ const sequelize_1 = require("sequelize");
 const jwt_1 = __importDefault(require("../helpers/jwt"));
 const historial_medico_1 = __importDefault(require("../models/historial_medico"));
 const cita_medica_1 = __importDefault(require("../models/cita_medica"));
+const factura_1 = __importDefault(require("../models/factura"));
 const getUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const desde = Number(req.query.desde) || 0;
@@ -255,27 +256,27 @@ const putUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.putUsuario = putUsuario;
 const deleteUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
-    console.log(id);
     try {
         const usuario = yield usuario_1.default.findByPk(id);
         if (!usuario) {
-            return res.status(404).json({
-                msg: 'No existe un usuario con el id ' + id,
-            });
+            return res.status(404).json({ msg: 'No existe un usuario con el id ' + id });
         }
-        // Antes de eliminar al usuario, elimina los registros de historial relacionados
-        yield historial_medico_1.default.destroy({
-            where: { rut_paciente: usuario.rut }, // Asumiendo que el campo se llama "rut_usuario"
-        });
-        // Ahora puedes eliminar al usuario
+        // Verificar si el usuario tiene citas médicas asociadas
+        const citas = yield cita_medica_1.default.findAll({ where: { rut_paciente: usuario.rut } });
+        // Eliminar todas las facturas asociadas a las citas
+        for (const cita of citas) {
+            yield factura_1.default.destroy({ where: { id_cita: cita.idCita } });
+            yield cita.destroy(); // Elimina la cita después de eliminar las facturas
+        }
+        // Eliminar historiales médicos del usuario
+        yield historial_medico_1.default.destroy({ where: { rut_paciente: usuario.rut } });
+        // Eliminar al usuario
         yield usuario.destroy();
-        res.json({ msg: 'Usuario y sus registros de historial eliminados correctamente' });
+        res.json({ msg: `Usuario ${usuario.nombre} y todas sus entidades relacionadas han sido eliminados correctamente.` });
     }
     catch (error) {
         console.error(error);
-        res.status(500).json({
-            msg: 'Error en el servidor',
-        });
+        res.status(500).json({ msg: 'Error en el servidor' });
     }
 });
 exports.deleteUsuario = deleteUsuario;

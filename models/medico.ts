@@ -14,6 +14,7 @@ class Medico extends Model {
   public especialidad_medica!: string;
   public password!: string; // Nueva propiedad para contraseña
   public rol!: string;      // Nueva propiedad para el rol
+  public estado!: string;
 }
 
 Medico.init(
@@ -55,15 +56,20 @@ Medico.init(
     especialidad_medica: {
       type: DataTypes.STRING,
     },
-    password: {  // Nueva definición para contraseña
+    password: {  
       type: DataTypes.STRING,
       allowNull: false,
     },
-    rol: {  // Nueva definición para rol
+    rol: {  
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: 'MEDICO_ROLE', // Esto garantiza que, por defecto, el rol sea 'MEDICO'
-    }
+      defaultValue: 'MEDICO_ROLE', 
+    },
+    estado: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'activo' // Valor por defecto es 'activo'
+  },
   },
   {
     sequelize: db, // Conecta el modelo a tu instancia de Sequelize

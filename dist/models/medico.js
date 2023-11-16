@@ -52,8 +52,13 @@ Medico.init({
     rol: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
-        defaultValue: 'MEDICO_ROLE', // Esto garantiza que, por defecto, el rol sea 'MEDICO'
-    }
+        defaultValue: 'MEDICO_ROLE',
+    },
+    estado: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: true,
+        defaultValue: 'activo' // Valor por defecto es 'activo'
+    },
 }, {
     sequelize: connection_1.default,
     modelName: 'Medico',

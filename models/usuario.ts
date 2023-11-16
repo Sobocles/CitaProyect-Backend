@@ -56,6 +56,7 @@ Usuario.init(
             allowNull: false,
             defaultValue: 'USER_ROLE', // Establece el valor por defecto para USER_ROLE
         },
+     
     },
     {
         sequelize: db,

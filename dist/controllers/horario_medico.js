@@ -33,42 +33,41 @@ class HorarioMedico {
         
         
         */
+        // Suponiendo que esta es la función para obtener los horarios médicos
         this.getHorariosMedicos = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            console.log('aqui estoy obteniendo los horarios medicos');
+            console.log('Obteniendo horarios médicos...');
             try {
                 const desde = Number(req.query.desde) || 0;
                 const especialidadesValidas = yield tipo_cita_1.default.findAll({
                     attributes: ['especialidad_medica']
                 });
                 const especialidades = especialidadesValidas.map(ec => ec.especialidad_medica);
-                // Obtén el total de horarios de médicos
-                const totalHorarios = yield horario_medico_1.default.count();
-                // Obtén los detalles de todos los horarios de médicos con paginación
+                // Obtén el total de horarios de médicos activos
+                const totalHorarios = yield horario_medico_1.default.count({
+                    include: [{
+                            model: medico_1.default,
+                            as: 'medico',
+                            where: { estado: 'activo' } // Contar solo horarios de médicos activos
+                        }]
+                });
+                // Obtén los detalles de todos los horarios de médicos activos
                 const horarios = yield horario_medico_1.default.findAll({
-                    include: [
-                        {
+                    include: [{
                             model: medico_1.default,
                             as: 'medico',
                             attributes: ['nombre', 'apellidos', 'especialidad_medica'],
                             where: {
+                                estado: 'activo',
                                 especialidad_medica: {
                                     [sequelize_1.Op.in]: especialidades
                                 }
                             }
-                        }
-                    ],
+                        }],
                     offset: desde,
                     limit: 5,
                 });
                 // Filtrar horarios para excluir especialidades no válidas
-                const horariosFiltrados = horarios.map(horario => {
-                    // Verifica si medico es undefined antes de acceder a sus propiedades
-                    if (horario.medico && !especialidades.includes(horario.medico.especialidad_medica)) {
-                        // Si medico no es undefined y su especialidad_medica no está en la lista de especialidades válidas, elimínala
-                        delete horario.medico.dataValues.especialidad_medica;
-                    }
-                    return horario;
-                });
+                const horariosFiltrados = horarios.filter(horario => horario.medico && especialidades.includes(horario.medico.especialidad_medica));
                 res.json({
                     ok: true,
                     horarios: horariosFiltrados,
@@ -82,6 +81,64 @@ class HorarioMedico {
                 });
             }
         });
+        /*
+        
+        
+        getHorariosMedicos = async (req: Request, res: Response) => {
+          console.log('aqui estoy obteniendo los horarios medicos');
+          try {
+              const desde = Number(req.query.desde) || 0;
+              const especialidadesValidas = await TipoCita.findAll({
+                  attributes: ['especialidad_medica']
+              });
+              const especialidades = especialidadesValidas.map(ec => ec.especialidad_medica);
+        
+              // Obtén el total de horarios de médicos
+              const totalHorarios = await HorarioMedic.count();
+        
+              // Obtén los detalles de todos los horarios de médicos con paginación
+              const horarios = await HorarioMedic.findAll({
+                  include: [
+                      {
+                          model: Medico,
+                          as: 'medico',
+                          attributes: ['nombre', 'apellidos', 'especialidad_medica'],
+                          where: {
+                              especialidad_medica: {
+                                  [Op.in]: especialidades
+                              }
+                          }
+                      }
+                  ],
+                  offset: desde,
+                  limit: 5,
+              });
+        
+              // Filtrar horarios para excluir especialidades no válidas
+              const horariosFiltrados = horarios.map(horario => {
+                // Verifica si medico es undefined antes de acceder a sus propiedades
+                if (horario.medico && !especialidades.includes(horario.medico.especialidad_medica)) {
+                  // Si medico no es undefined y su especialidad_medica no está en la lista de especialidades válidas, elimínala
+                  delete horario.medico.dataValues.especialidad_medica;
+                }
+                return horario;
+              });
+        
+              res.json({
+                  ok: true,
+                  horarios: horariosFiltrados,
+                  total: totalHorarios,
+              });
+          } catch (error) {
+              console.error('Error al obtener horario:', error);
+              res.status(500).json({
+                  msg: 'Error en el servidor',
+              });
+          }
+        };
+        
+        
+        */
         this.getHorarioMedico = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
             console.log(10);
