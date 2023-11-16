@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const medico_1 = __importDefault(require("../models/medico"));
 const horario_medico_1 = __importDefault(require("../models/horario_medico"));
 const sequelize_1 = require("sequelize");
+const tipo_cita_1 = __importDefault(require("../models/tipo_cita"));
 class HorarioMedico {
     constructor() {
         /*
@@ -33,8 +34,13 @@ class HorarioMedico {
         
         */
         this.getHorariosMedicos = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            console.log('aqui estoy obteniendo los horarios medicos');
             try {
                 const desde = Number(req.query.desde) || 0;
+                const especialidadesValidas = yield tipo_cita_1.default.findAll({
+                    attributes: ['especialidad_medica']
+                });
+                const especialidades = especialidadesValidas.map(ec => ec.especialidad_medica);
                 // Obtén el total de horarios de médicos
                 const totalHorarios = yield horario_medico_1.default.count();
                 // Obtén los detalles de todos los horarios de médicos con paginación
@@ -43,15 +49,29 @@ class HorarioMedico {
                         {
                             model: medico_1.default,
                             as: 'medico',
-                            attributes: ['nombre', 'especialidad_medica'],
-                        },
+                            attributes: ['nombre', 'apellidos', 'especialidad_medica'],
+                            where: {
+                                especialidad_medica: {
+                                    [sequelize_1.Op.in]: especialidades
+                                }
+                            }
+                        }
                     ],
                     offset: desde,
                     limit: 5,
                 });
+                // Filtrar horarios para excluir especialidades no válidas
+                const horariosFiltrados = horarios.map(horario => {
+                    // Verifica si medico es undefined antes de acceder a sus propiedades
+                    if (horario.medico && !especialidades.includes(horario.medico.especialidad_medica)) {
+                        // Si medico no es undefined y su especialidad_medica no está en la lista de especialidades válidas, elimínala
+                        delete horario.medico.dataValues.especialidad_medica;
+                    }
+                    return horario;
+                });
                 res.json({
                     ok: true,
-                    horarios,
+                    horarios: horariosFiltrados,
                     total: totalHorarios,
                 });
             }

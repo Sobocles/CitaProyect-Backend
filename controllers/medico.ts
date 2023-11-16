@@ -14,6 +14,8 @@ export default class Medicos {
     }
 
     getMedicos = async (req: Request, res: Response) => {
+
+      console.log('olaaaaaa');
       try {
         const desde = Number(req.query.desde) || 0;
     
@@ -40,7 +42,39 @@ export default class Medicos {
       }
     };
 
+    getMedicosEspecialidad = async (req: Request, res: Response) => {
+      try {
+        // Obtener todas las especialidades válidas de TipoCita
+        const especialidadesValidas = await TipoCita.findAll({
+          attributes: ['especialidad_medica']
+        });
+        const especialidades = especialidadesValidas.map(ec => ec.especialidad_medica);
+    
+        // Obtener todos los médicos
+        const medicos = await Medico.findAll({
+          attributes: ['rut', 'nombre', 'apellidos', 'especialidad_medica']
+        });
+    
+        // Filtrar los médicos que tienen una especialidad no válida
+        const medicosFiltrados = medicos.filter(medico => 
+          especialidades.includes(medico.especialidad_medica)
+        );
+    
+        res.json({
+          ok: true,
+          medicos: medicosFiltrados
+        });
+      } catch (error) {
+        console.error('Error al obtener los médicos y sus especialidades:', error);
+        res.status(500).json({
+          ok: false,
+          msg: 'Error en el servidor'
+        });
+      }
+    };
+
     getAllMedicos = async (req: Request, res: Response) => {
+      console.log('olaaaaaa aquii');
       try {
         // Obtén el total de médicos
         const totalMedicos = await Medico.count();

@@ -19,9 +19,12 @@ const sequelize_1 = require("sequelize"); // Importa el operador Op para realiza
 const horario_medico_1 = __importDefault(require("../models/horario_medico"));
 const cita_medica_1 = __importDefault(require("../models/cita_medica"));
 const tipo_cita_1 = __importDefault(require("../models/tipo_cita"));
+const factura_1 = __importDefault(require("../models/factura"));
 const getDocumentosColeccion = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const tabla = req.params.tabla;
     const busqueda = req.params.busqueda;
+    console.log('aqui esta la tabla', tabla);
+    console.log('aqui esta la busqueda', busqueda);
     let data = [];
     switch (tabla) {
         case 'usuarios':
@@ -99,13 +102,41 @@ const getDocumentosColeccion = (req, res) => __awaiter(void 0, void 0, void 0, f
                 }
             });
             break;
+        case 'facturas':
+            data = yield factura_1.default.findAll({
+                include: [{
+                        model: cita_medica_1.default,
+                        as: 'citaMedica',
+                        include: [
+                            {
+                                model: usuario_1.default,
+                                as: 'paciente',
+                                attributes: ['rut', 'nombre', 'apellidos'],
+                                where: {
+                                    nombre: {
+                                        [sequelize_1.Op.like]: `%${busqueda}%`
+                                    }
+                                },
+                                required: true
+                            },
+                            {
+                                model: medico_1.default,
+                                as: 'medico',
+                                attributes: ['rut', 'nombre', 'apellidos']
+                            }
+                        ],
+                        attributes: ['motivo']
+                    }],
+                attributes: ['id_factura', 'payment_method_id', 'transaction_amount', 'monto_pagado', 'fecha_pago']
+            });
+            break;
         default:
             return res.status(400).json({
                 ok: false,
                 msg: 'Por ahora solo se soporta la búsqueda de usuarios y médicos'
             });
     }
-    console.log('aqui' + data);
+    console.log('aqui factura', data);
     res.json({
         ok: true,
         citas: data

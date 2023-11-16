@@ -74,30 +74,43 @@ export default class tipo_cita {
         crearTipoCita = async (req: Request, res: Response) => {
           let { especialidad_medica } = req.body;
           const tipoCitaData = req.body;
-        
+      
           // Quitar acentos y convertir a minúsculas el campo especialidad_medica
           if (especialidad_medica) {
-            especialidad_medica = especialidad_medica.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-            tipoCitaData.especialidad_medica = especialidad_medica;
+              especialidad_medica = especialidad_medica.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+              tipoCitaData.especialidad_medica = especialidad_medica;
           }
           console.log(especialidad_medica);
-          
+      
           try {
-            // Crea un nuevo tipo de cita
-            const nuevoTipoCita = await TipoCita.create(tipoCitaData);
-        
-            res.json({
-              ok: true,
-              tipoCita: nuevoTipoCita,
-            });
+              // Comprobar si la especialidad médica ya existe
+              const existeEspecialidad = await TipoCita.findOne({
+                  where: { especialidad_medica: especialidad_medica }
+              });
+      
+              if (existeEspecialidad) {
+                  return res.status(400).json({
+                      ok: false,
+                      msg: `La especialidad médica '${especialidad_medica}' ya está registrada.`
+                  });
+              }
+      
+              // Si no existe, crea un nuevo tipo de cita
+              const nuevoTipoCita = await TipoCita.create(tipoCitaData);
+      
+              res.json({
+                  ok: true,
+                  tipoCita: nuevoTipoCita,
+              });
           } catch (error) {
-            console.error(error);
-            res.status(500).json({
-              ok: false,
-              msg: 'Hable con el administrador',
-            });
+              console.error(error);
+              res.status(500).json({
+                  ok: false,
+                  msg: 'Hable con el administrador',
+              });
           }
-        };
+      };
+      
         
         
       

@@ -13,6 +13,12 @@ router.get('/',[
     validarCampos.instance.validarCampos
 ], Medicos.instance.getMedicos);
 
+router.get('/Especialidades',[
+
+    
+  validarCampos.instance.validarCampos
+], Medicos.instance.getMedicosEspecialidad);
+
 router.get('/all',[
   validarCampos.instance.validarCampos
 ], Medicos.instance.getAllMedicos);

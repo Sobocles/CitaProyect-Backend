@@ -37,7 +37,7 @@ export const createOrder = async (req: Request, res: Response) => {
         failure: "http://localhost:4200/payment-failure",
         pending: "http://localhost:8000/api/mercadoPago/pending"
       },
-      notification_url: "https://702b-2800-150-14e-fe7-94e6-e2dd-926e-ad09.ngrok.io/api/mercadoPago/webhook"
+      notification_url: "https://0a18-2800-150-14e-fe7-3523-777c-cb37-48f2.ngrok.io/api/mercadoPago/webhook"
     };
     
     try {

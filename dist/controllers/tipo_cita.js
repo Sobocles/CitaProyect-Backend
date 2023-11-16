@@ -73,7 +73,17 @@ class tipo_cita {
             }
             console.log(especialidad_medica);
             try {
-                // Crea un nuevo tipo de cita
+                // Comprobar si la especialidad médica ya existe
+                const existeEspecialidad = yield tipo_cita_1.default.findOne({
+                    where: { especialidad_medica: especialidad_medica }
+                });
+                if (existeEspecialidad) {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: `La especialidad médica '${especialidad_medica}' ya está registrada.`
+                    });
+                }
+                // Si no existe, crea un nuevo tipo de cita
                 const nuevoTipoCita = yield tipo_cita_1.default.create(tipoCitaData);
                 res.json({
                     ok: true,

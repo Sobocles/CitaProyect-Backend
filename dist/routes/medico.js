@@ -11,6 +11,9 @@ const router = (0, express_1.Router)();
 router.get('/', [
     validar_campos_1.default.instance.validarCampos
 ], medico_1.default.instance.getMedicos);
+router.get('/Especialidades', [
+    validar_campos_1.default.instance.validarCampos
+], medico_1.default.instance.getMedicosEspecialidad);
 router.get('/all', [
     validar_campos_1.default.instance.validarCampos
 ], medico_1.default.instance.getAllMedicos);

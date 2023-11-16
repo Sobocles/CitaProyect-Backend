@@ -9,7 +9,7 @@ export const getMenuFrontEnd = (rol = 'USER_ROLE') => {
     { label: 'Gestionar Citas', url: '/gestionar-cita' },
     { label: 'Gestionar Tipo de Cita', url: '/gestionar-tipo-cita' },
     { label: 'Datos clinica', url: '/info-clinica' },
-    { label: 'ver facturas', url: '/factura' },
+    { label: 'Ver facturas', url: '/factura' },
   ];
 
   const pacienteMenu = [

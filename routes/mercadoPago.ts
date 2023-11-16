@@ -1,6 +1,6 @@
 import {Router} from 'express'
 import { createOrder, receiveWebhook } from '../controllers/mercadoPago';
-import { getAllFacturas } from '../controllers/facturas';
+import { getAllFacturas, obtenerFacturaPorId, eliminarFactura } from '../controllers/facturas';
 
 
 
@@ -14,8 +14,14 @@ router.get('/factura', getAllFacturas
 
  );
 
- router.delete('/factura/:id', 
+ router.delete('/factura/:id', eliminarFactura);
+
+ router.get('/factura/:id', obtenerFacturaPorId
+
  );
+
+
+
 
 router.get('/failure',(req, res) => res.send('failure'))
 

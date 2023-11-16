@@ -27,9 +27,11 @@ const medico_1 = __importDefault(require("../models/medico"));
 const horario_medico_1 = __importDefault(require("../models/horario_medico"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jwt_1 = __importDefault(require("../helpers/jwt"));
+const tipo_cita_1 = __importDefault(require("../models/tipo_cita"));
 class Medicos {
     constructor() {
         this.getMedicos = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            console.log('olaaaaaa');
             try {
                 const desde = Number(req.query.desde) || 0;
                 // Obtén el total de médicos
@@ -53,7 +55,34 @@ class Medicos {
                 });
             }
         });
+        this.getMedicosEspecialidad = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                // Obtener todas las especialidades válidas de TipoCita
+                const especialidadesValidas = yield tipo_cita_1.default.findAll({
+                    attributes: ['especialidad_medica']
+                });
+                const especialidades = especialidadesValidas.map(ec => ec.especialidad_medica);
+                // Obtener todos los médicos
+                const medicos = yield medico_1.default.findAll({
+                    attributes: ['rut', 'nombre', 'apellidos', 'especialidad_medica']
+                });
+                // Filtrar los médicos que tienen una especialidad no válida
+                const medicosFiltrados = medicos.filter(medico => especialidades.includes(medico.especialidad_medica));
+                res.json({
+                    ok: true,
+                    medicos: medicosFiltrados
+                });
+            }
+            catch (error) {
+                console.error('Error al obtener los médicos y sus especialidades:', error);
+                res.status(500).json({
+                    ok: false,
+                    msg: 'Error en el servidor'
+                });
+            }
+        });
         this.getAllMedicos = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            console.log('olaaaaaa aquii');
             try {
                 // Obtén el total de médicos
                 const totalMedicos = yield medico_1.default.count();

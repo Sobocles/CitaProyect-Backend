@@ -5,10 +5,13 @@ import { Op } from 'sequelize'; // Importa el operador Op para realizar búsqued
 import HorarioMedic from '../models/horario_medico';
 import CitaMedica from '../models/cita_medica';
 import TipoCita from '../models/tipo_cita';
+import Factura from '../models/factura';
 
 export const getDocumentosColeccion = async (req: Request, res: Response) => {
   const tabla = req.params.tabla;
   const busqueda = req.params.busqueda;
+  console.log('aqui esta la tabla', tabla);
+  console.log('aqui esta la busqueda',busqueda);
     
   let data: any[] = [];
 
@@ -92,6 +95,34 @@ export const getDocumentosColeccion = async (req: Request, res: Response) => {
                       }
     });
     break;
+    case 'facturas':
+          data = await Factura.findAll({
+              include: [{
+                  model: CitaMedica,
+                  as: 'citaMedica',
+                  include: [
+                      {
+                          model: Usuario,
+                          as: 'paciente',
+                          attributes: ['rut', 'nombre', 'apellidos'],
+                          where: {
+                              nombre: {
+                                  [Op.like]: `%${busqueda}%`
+                              }
+                          },
+                          required: true
+                      },
+                      {
+                          model: Medico,
+                          as: 'medico',
+                          attributes: ['rut', 'nombre', 'apellidos']
+                      }
+                  ],
+                  attributes: ['motivo']
+              }],
+              attributes: ['id_factura', 'payment_method_id', 'transaction_amount', 'monto_pagado', 'fecha_pago']
+          });
+          break;
           
       default:
           return res.status(400).json({
@@ -99,7 +130,7 @@ export const getDocumentosColeccion = async (req: Request, res: Response) => {
               msg: 'Por ahora solo se soporta la búsqueda de usuarios y médicos'
           });
   }
-  console.log('aqui'+data);
+  console.log('aqui factura',data);
   res.json({
       ok: true,
       citas: data
