@@ -18,22 +18,43 @@ const info_clinica_1 = __importDefault(require("../models/info-clinica"));
 const medico_1 = __importDefault(require("../models/medico"));
 class Horario_clinica {
     constructor() {
+        //este metodo se activa para ver el horario de la clinica en el menu de inicio de paciente
         this.obtenerHorariosClinica = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
                 const horariosClinica = [];
+                // Obtener todos los horarios médicos con médicos activos
+                const horarios = yield horario_medico_1.default.findAll({
+                    include: [{
+                            model: medico_1.default,
+                            as: 'medico',
+                            where: { estado: 'activo' },
+                            attributes: []
+                        }]
+                });
                 for (const dia of dias) {
-                    const horarioApertura = yield horario_medico_1.default.min('horaInicio', {
-                        where: { diaSemana: dia }
-                    });
-                    const horarioCierre = yield horario_medico_1.default.max('horaFinalizacion', {
-                        where: { diaSemana: dia }
-                    });
-                    horariosClinica.push({
-                        dia,
-                        horarioApertura,
-                        horarioCierre
-                    });
+                    // Filtrar los horarios por día
+                    const horariosDelDia = horarios.filter(horario => horario.diaSemana === dia);
+                    // Determinar si el día está abierto o cerrado
+                    const estaAbierto = horariosDelDia.length > 0;
+                    if (estaAbierto) {
+                        // Calcular horario de apertura y cierre
+                        const horarioApertura = horariosDelDia.reduce((min, h) => h.horaInicio < min ? h.horaInicio : min, '23:59');
+                        const horarioCierre = horariosDelDia.reduce((max, h) => h.horaFinalizacion > max ? h.horaFinalizacion : max, '00:00');
+                        horariosClinica.push({
+                            dia,
+                            horarioApertura,
+                            horarioCierre,
+                            estado: 'abierto'
+                        });
+                    }
+                    else {
+                        // Marcar el día como cerrado
+                        horariosClinica.push({
+                            dia,
+                            estado: 'cerrado'
+                        });
+                    }
                 }
                 return res.json({
                     ok: true,

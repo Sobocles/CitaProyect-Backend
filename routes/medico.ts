@@ -4,28 +4,30 @@ import validarCampos from '../middlewares/validar-campos';
 import Medicos from '../controllers/medico';
 import { check } from 'express-validator';
 import Medico from '../models/medico';
+import ValidarJwt from '../middlewares/validar-jwt';
 
 const router = Router();
 
 router.get('/',[
 
-    
+    ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
 ], Medicos.instance.getMedicos);
 
 router.get('/Especialidades',[
 
-    
+  ValidarJwt.instance.validarJwt,
   validarCampos.instance.validarCampos
 ], Medicos.instance.getMedicosEspecialidad);
 
 router.get('/all',[
+  ValidarJwt.instance.validarJwt,
   validarCampos.instance.validarCampos
 ], Medicos.instance.getAllMedicos);
 
 
 router.get('/:id', [
-  
+  ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
 ], Medicos.instance.getMedico );
 
@@ -46,16 +48,20 @@ router.post(
 
 router.put('/:rut',
     [
+     
     validarCampos.instance.validarCampos
     ], 
 Medicos.instance.putMedico
  );
 
- router.delete('/:rut',[
+ router.delete('/:rut',
+ 
+ [
+    ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
-], 
-Medicos.instance.deleteMedico
- );
+  ], 
+Medicos.instance.deleteMedico,
+);
 
 
 

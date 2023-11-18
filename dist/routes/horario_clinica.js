@@ -6,20 +6,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const validar_campos_1 = __importDefault(require("../middlewares/validar-campos"));
 const horario_clinica_1 = __importDefault(require("../controllers/horario_clinica"));
+const validar_jwt_1 = __importDefault(require("../middlewares/validar-jwt"));
 const router = (0, express_1.Router)();
 router.get('/', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos
 ], horario_clinica_1.default.instance.obtenerHorariosClinica);
 router.get('/porEspecialidad', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos
 ], horario_clinica_1.default.instance.obtenerEspecialidadesPorDia);
 router.get('/Infoclinica', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos
 ], horario_clinica_1.default.instance.getInfoClinica);
 router.delete('/Infoclinica/:id', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos
 ], horario_clinica_1.default.instance.deleteInfoClinica);
 router.get('/:id', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos
 ], horario_clinica_1.default.instance.getHorarioClinica);
 router.post('/', [

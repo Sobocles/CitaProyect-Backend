@@ -44,7 +44,12 @@ Usuario.init({
     rol: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
-        defaultValue: 'USER_ROLE', // Establece el valor por defecto para USER_ROLE
+        defaultValue: 'USER_ROLE',
+    },
+    estado: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'activo' // Estado por defecto es 'activo'
     },
 }, {
     sequelize: connection_1.default,

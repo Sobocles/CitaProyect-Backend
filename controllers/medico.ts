@@ -150,6 +150,35 @@ export default class Medicos {
       }
     };
 */
+
+
+getAllMedicos = async (req: Request, res: Response) => {
+  console.log('olaaaaaa aquí');
+  try {
+      // Obtén el total de médicos activos
+      const totalMedicosActivos = await Medico.count({
+          where: { estado: 'activo' } // Filtra por estado activo
+      });
+
+      // Obtén los detalles de todos los médicos activos
+      const medicosActivos = await Medico.findAll({
+          where: { estado: 'activo' } // Filtra por estado activo
+      });
+
+      res.json({
+          ok: true,
+          medicos: medicosActivos,
+          total: totalMedicosActivos
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({
+          msg: 'Error en el servidor',
+      });
+  }
+};
+
+/*
     getAllMedicos = async (req: Request, res: Response) => {
       console.log('olaaaaaa aquii');
       try {
@@ -171,7 +200,7 @@ export default class Medicos {
         });
       }
     };
-    
+*/    
 
         getMedico = async( req: Request , res: Response ) => {
             const { rut } = req.params;
@@ -199,6 +228,88 @@ export default class Medicos {
         }
         };
 
+        
+        CrearMedico = async(req: Request, res: Response) => {
+          const { email, password, rut, telefono, ...medicoData } = req.body;
+      
+          try {
+              // Verificar si el correo ya está registrado por un médico activo
+              const existeEmailMedico = await Medico.findOne({ 
+                  where: { 
+                      email,
+                      estado: 'activo' // Solo busca entre médicos activos
+                  } 
+              });
+      
+              if (existeEmailMedico) {
+                  return res.status(400).json({
+                      ok: false,
+                      msg: 'El correo ya está registrado para otro médico',
+                  });
+              }
+      
+              // Verificar si el RUT ya está registrado por un médico activo
+              const existeRutMedico = await Medico.findOne({ 
+                  where: { 
+                      rut,
+                      estado: 'activo' // Solo busca entre médicos activos
+                  } 
+              });
+      
+              if (existeRutMedico) {
+                  return res.status(400).json({
+                      ok: false,
+                      msg: 'El RUT ya está registrado para otro médico',
+                  });
+              }
+      
+              // Verificar si el teléfono ya está registrado por un médico activo
+              const existeTelefonoMedico = await Medico.findOne({ 
+                  where: { 
+                      telefono,
+                      estado: 'activo' // Solo busca entre médicos activos
+                  } 
+              });
+      
+              if (existeTelefonoMedico) {
+                  return res.status(400).json({
+                      ok: false,
+                      msg: 'El número de teléfono ya está registrado para otro médico',
+                  });
+              }
+      
+              // Encriptar contraseña
+              const saltRounds = 10;
+              const hashedPassword = await bcrypt.hash(password, saltRounds);
+      
+              // Crea un nuevo médico
+              const nuevoMedico = await Medico.create({
+                  ...medicoData,
+                  email,
+                  rut,
+                  telefono,
+                  password: hashedPassword,
+                  rol: 'MEDICO_ROLE' 
+              });
+      
+              // Genera el JWT
+              const token = await JwtGenerate.instance.generarJWT(nuevoMedico.rut, nuevoMedico.nombre, nuevoMedico.apellidos, nuevoMedico.rol);
+      
+              res.json({
+                  ok: true,
+                  medico: nuevoMedico,
+                  token
+              });
+          } catch (error) {
+              console.log(error);
+              res.status(500).json({
+                  ok: false,
+                  msg: 'Hable con el administrador',
+              });
+          }
+      };
+      
+/*
         
         CrearMedico = async(req: Request, res: Response) => {
           const { email, password, rut, telefono, ...medicoData } = req.body;
@@ -265,7 +376,7 @@ export default class Medicos {
               });
           }
       };
-      
+   */   
       
       
       
@@ -314,38 +425,28 @@ export default class Medicos {
         
                 if (!medico) {
                     return res.status(404).json({
-                        msg: 'No existe un médico con el id ' + rut,
+                        msg: 'No existe un médico con el rut ' + rut,
                     });
                 }
         
-                // Verificar si el médico tiene citas médicas asociadas
+                // Encuentra todas las citas médicas asociadas al médico
                 const citas = await CitaMedica.findAll({ where: { rut_medico: medico.rut } });
         
-                let tieneFacturasAsociadas = false;
+                // Cambia el estado de actividad de las citas médicas a "inactivo"
                 for (const cita of citas) {
-                    const factura = await Factura.findOne({ where: { id_cita: cita.idCita } });
-                    if (factura) {
-                        tieneFacturasAsociadas = true;
-                        break;
-                    }
+                    await cita.update({ estado_actividad: 'inactivo' });
                 }
         
-                if (tieneFacturasAsociadas) {
-                    // Cambiar el estado del médico a inactivo
-                    await medico.update({ estado: 'inactivo' });
-                    res.json({ msg: 'Médico actualizado a estado inactivo debido a citas médicas y facturas asociadas.' });
-                } else {
-                    // Eliminar los horarios relacionados con el médico
-                    await HorarioMedic.destroy({ where: { rut_medico: medico.rut } });
-                    // Eliminar al médico
-                    await medico.destroy();
-                    res.json({ msg: 'Médico y sus horarios eliminados correctamente' });
-                }
+                // Cambiar el estado del médico a inactivo
+                await medico.update({ estado: 'inactivo' });
+        
+                res.json({ msg: 'Médico y sus citas médicas asociadas actualizadas a estado inactivo.' });
             } catch (error) {
                 console.error(error);
                 res.status(500).json({ msg: 'Error en el servidor' });
             }
         };
+        
         
 /*
     public deleteMedico = async (req: Request, res: Response) => {

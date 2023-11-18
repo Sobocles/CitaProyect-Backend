@@ -36,10 +36,6 @@ getHorariosMedicos = async (req: Request, res: Response) => {
   console.log('Obteniendo horarios médicos...');
   try {
       const desde = Number(req.query.desde) || 0;
-      const especialidadesValidas = await TipoCita.findAll({
-          attributes: ['especialidad_medica']
-      });
-      const especialidades = especialidadesValidas.map(ec => ec.especialidad_medica);
 
       // Obtén el total de horarios de médicos activos
       const totalHorarios = await HorarioMedic.count({
@@ -56,25 +52,15 @@ getHorariosMedicos = async (req: Request, res: Response) => {
               model: Medico,
               as: 'medico',
               attributes: ['nombre', 'apellidos', 'especialidad_medica'],
-              where: {
-                  estado: 'activo', // Filtrar por médicos activos
-                  especialidad_medica: {
-                    [Op.in]: especialidades
-                  }
-              }
+              where: { estado: 'activo' } // Filtrar por médicos activos
           }],
           offset: desde,
           limit: 5,
       });
 
-      // Filtrar horarios para excluir especialidades no válidas
-      const horariosFiltrados = horarios.filter(horario => 
-          horario.medico && especialidades.includes(horario.medico.especialidad_medica)
-      );
-
       res.json({
           ok: true,
-          horarios: horariosFiltrados,
+          horarios,
           total: totalHorarios,
       });
   } catch (error) {
@@ -84,6 +70,7 @@ getHorariosMedicos = async (req: Request, res: Response) => {
       });
   }
 };
+
 
 
 /*
@@ -208,7 +195,7 @@ getHorariosMedicos = async (req: Request, res: Response) => {
           if (horariosExistentes.length > 0) {
             return res.status(400).json({
               ok: false,
-              msg: 'Ya tienes registrado a este medico en el mismo dia a la misma hora ingresada. Los horarios pueden ser consecutivos, pero no deben superponerse. Por ejemplo, si un horario de mismo medico termina a las 12:00, el siguiente puede comenzar a partir de las 12:00 pero no antes. por favor consulta los horarios de tus medicos para asignar horarios disponibles'
+              msg: 'Ya tienes registrado a este mismo medico en la mismo dia y hora en el registro de horarios medicos. por favor revise el horario de sus medicos para evitar solapamiento de horarios de un mismo medico en la misma dia y hora, si un medico inicia su horario un dia lunes a las 12:00 y termina a las 17:00 no puede ingresar al mismo medico con una hora incio o una hora fin que se encuentre en este intervalo de tiempo'
             });
           }
           

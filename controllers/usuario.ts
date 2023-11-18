@@ -15,14 +15,17 @@ export const getUsuarios = async (req: Request, res: Response) => {
   try {
       const desde = Number(req.query.desde) || 0;
 
-      // Obtén el total de usuarios
-      const totalUsuarios = await Usuario.count();
+      // Obtén el total de usuarios activos
+      const totalUsuarios = await Usuario.count({
+          where: { estado: 'activo' } // Incluye solo usuarios activos
+      });
 
-      // Obtén los detalles de todos los usuarios con paginación y sin mostrar campos sensibles
+      // Obtén los detalles de todos los usuarios activos con paginación y sin mostrar campos sensibles
       const usuarios = await Usuario.findAll({
           attributes: {
               exclude: ['password', 'createdAt', 'updatedAt']
           },
+          where: { estado: 'activo' }, // Incluye solo usuarios activos
           offset: desde,
           limit: 5,
       });
@@ -38,9 +41,58 @@ export const getUsuarios = async (req: Request, res: Response) => {
   }
 };
 
+
 // Método para obtener a todos los pacientes
 export const getAllUsuarios = async (req: Request, res: Response) => {
-  console.log('olaaaaaaaaaaaaa');
+  try {
+      // Obtén los ruts de los pacientes con citas en estados 'en_curso' o 'no_asistido'
+      const rutsPacientesConCitas = await CitaMedica.findAll({
+          where: {
+              estado: ['en_curso', 'no_asistido']
+          },
+          attributes: ['rut_paciente'],
+          group: ['rut_paciente']
+      });
+
+      // Extrae solo los ruts de los pacientes
+      const rutsExcluidos = rutsPacientesConCitas.map(cita => cita.rut_paciente);
+
+      // Obtén los detalles de todos los pacientes que no tienen citas en esos estados,
+      // que no son administradores y que están activos
+      const usuarios = await Usuario.findAll({
+          where: {
+              rut: {
+                  [Op.notIn]: rutsExcluidos
+              },
+              rol: {
+                  [Op.ne]: 'ADMIN_ROLE' // Excluye a los usuarios con rol 'ADMIN_ROLE'
+              },
+              estado: 'activo' // Añade esta línea para incluir solo usuarios activos
+          },
+          attributes: {
+              exclude: ['password', 'createdAt', 'updatedAt']
+          }
+      });
+
+      // Obtén el total de pacientes que no tienen citas en esos estados y que están activos
+      const totalPacientes = usuarios.length;
+
+      res.json({
+          ok: true,
+          usuarios,
+          total: totalPacientes
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('Error interno del servidor');
+  }
+};
+
+
+/*
+  export const getAllUsuarios = async (req: Request, res: Response) => {
+
+
   try {
       // Obtén los ruts de los pacientes con citas en estados 'en_curso' o 'no_asistio'
       const rutsPacientesConCitas = await CitaMedica.findAll({
@@ -84,12 +136,55 @@ export const getAllUsuarios = async (req: Request, res: Response) => {
 };
 
 
+*/
+
 export const getPacientesConCitasPagadasYEnCurso = async (req: Request, res: Response) => {
   try {
-      // Obtén los detalles de los pacientes con citas en estado 'en_curso' y que estén marcadas como 'pagadas'
+      // Obtén los detalles de los pacientes con citas en estado 'en_curso' y 'pagado'
       const pacientesConCitasPagadas = await CitaMedica.findAll({
           where: {
-            estado: ['en_curso', 'no_asistido']
+              estado: ['en_curso', 'pagado'] // Modificado para incluir 'pagado'
+          },
+          include: [{
+              model: Usuario, // Asumiendo que CitaMedica tiene una relación con Usuario
+              as: 'paciente',
+              where: {
+                  rol: {
+                      [Op.ne]: 'ADMIN_ROLE' // Excluye a los usuarios con rol 'ADMIN_ROLE'
+                  },
+                  estado: 'activo' // Añade esta línea para incluir solo usuarios activos
+              },
+              attributes: {
+                  exclude: ['password', 'createdAt', 'updatedAt']
+              }
+          }]
+      });
+
+      // Mapea los resultados para obtener solo los datos de los pacientes
+      const usuarios = pacientesConCitasPagadas.map(cita => cita.paciente);
+
+      res.json({
+          ok: true,
+          usuarios,
+          total: usuarios.length
+      });
+  } catch (error) {
+      console.error(error);
+      res.status(500).send('Error interno del servidor');
+  }
+};
+
+
+
+
+/*
+export const getPacientesConCitasPagadasYEnCurso = async (req: Request, res: Response) => {
+ 
+  try {
+      // Obtén los detalles de los pacientes con citas en estado 'en_curso' y 'pagado'
+      const pacientesConCitasPagadas = await CitaMedica.findAll({
+          where: {
+            estado: ['en_curso', 'pagado'] // Modificado para incluir 'pagado'
           },
           include: [{
               model: Usuario, // Asumiendo que CitaMedica tiene una relación con Usuario
@@ -120,9 +215,13 @@ export const getPacientesConCitasPagadasYEnCurso = async (req: Request, res: Res
 };
 
 
+*/
+
+
 
 
 export const getUsuario = async( req: Request , res: Response ) => {
+
     
   const { id } = req.params;
 
@@ -137,6 +236,77 @@ export const getUsuario = async( req: Request , res: Response ) => {
   });
 }
 
+export const CrearUsuario = async(req: Request, res: Response) => {
+  const { usuario, email, password, nombre, apellidos, telefono } = req.body;
+
+  try {
+    // Verificar si ya existen usuarios en la base de datos
+    const existenUsuarios = await Usuario.count();
+    let rol = 'USER_ROLE'; // Rol por defecto
+
+    // Si no hay usuarios, asignar rol de ADMIN_ROLE al primer usuario
+    if (existenUsuarios === 0) {
+      rol = 'ADMIN_ROLE';
+    }
+
+    // Verificar si el correo ya está registrado por un usuario activo
+    const existeEmail = await Usuario.findOne({ 
+      where: { 
+        email, 
+        estado: 'activo' // Solo busca entre usuarios activos
+      } 
+    });
+    if (existeEmail) {
+      return res.status(400).json({
+        ok: false,
+        msg: 'El correo ya está registrado',
+      });
+    }
+
+    // Verificar si el teléfono ya está registrado por un usuario activo
+    const existeTelefono = await Usuario.findOne({ 
+      where: { 
+        telefono, 
+        estado: 'activo' // Solo busca entre usuarios activos
+      } 
+    });
+    if (existeTelefono) {
+      return res.status(400).json({
+        ok: false,
+        msg: 'El teléfono ya está registrado',
+      });
+    }
+
+    // Encriptar contraseña
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Crear un nuevo usuario
+    const nuevoUsuario = await Usuario.create({
+      ...req.body,
+      password: hashedPassword,
+      rol: rol,
+    });
+
+    // Generar el TOKEN - JWT
+    const token = await JwtGenerate.instance.generarJWT(nuevoUsuario.rut, nombre, apellidos, rol);
+
+    res.json({
+      ok: true,
+      usuario: nuevoUsuario,
+      token,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      ok: false,
+      msg: 'Error inesperado... revisar logs',
+    });
+  }
+};
+
+
+/*
 export const CrearUsuario = async(req: Request, res: Response) => {
   const { usuario, email, password, nombre, apellidos, telefono } = req.body;
 
@@ -195,7 +365,7 @@ export const CrearUsuario = async(req: Request, res: Response) => {
     });
   }
 };
-
+*/
 
 
 /*
@@ -243,6 +413,7 @@ export const CrearUsuario = async( req: Request, res: Response ) => {
 */
   
   export const putUsuario = async (req: Request, res: Response) => {
+   
     try {
       const { id } = req.params;
       let { body } = req;
@@ -287,6 +458,34 @@ export const CrearUsuario = async( req: Request, res: Response ) => {
             return res.status(404).json({ msg: 'No existe un usuario con el id ' + id });
         }
 
+        // Cambiar el estado de las citas médicas a 'inactivo'
+        await CitaMedica.update({ estado_actividad: 'inactivo' }, { where: { rut_paciente: usuario.rut } });
+
+        // Cambiar el estado de los historiales médicos a 'inactivo'
+        await HistorialMedico.update({ estado_actividad: 'inactivo' }, { where: { rut_paciente: usuario.rut } });
+
+        // Cambiar el estado del usuario a 'inactivo'
+        await usuario.update({ estado: 'inactivo' });
+
+        res.json({ msg: `Usuario ${usuario.nombre} y todas sus entidades relacionadas han sido actualizadas a inactivo correctamente.` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: 'Error en el servidor' });
+    }
+};
+
+/*
+
+  export const deleteUsuario = async (req: Request, res: Response) => {
+  
+    const { id } = req.params;
+    try {
+        const usuario = await Usuario.findByPk(id);
+
+        if (!usuario) {
+            return res.status(404).json({ msg: 'No existe un usuario con el id ' + id });
+        }
+
         // Verificar si el usuario tiene citas médicas asociadas
         const citas = await CitaMedica.findAll({ where: { rut_paciente: usuario.rut } });
 
@@ -308,6 +507,8 @@ export const CrearUsuario = async( req: Request, res: Response ) => {
         res.status(500).json({ msg: 'Error en el servidor' });
     }
 };
+
+*/
 
 
 

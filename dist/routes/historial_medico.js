@@ -7,11 +7,14 @@ const express_1 = require("express");
 const historial_medico_1 = __importDefault(require("../controllers/historial_medico"));
 const express_validator_1 = require("express-validator");
 const validar_campos_1 = __importDefault(require("../middlewares/validar-campos"));
+const validar_jwt_1 = __importDefault(require("../middlewares/validar-jwt"));
 const router = (0, express_1.Router)();
 router.get('/', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos,
 ], historial_medico_1.default.instance.getHistoriales);
 router.get('/:id', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos
 ], historial_medico_1.default.instance.getHistorial);
 router.post('/', [
@@ -22,9 +25,11 @@ router.post('/', [
     // Puedes agregar más validaciones según tus necesidades
 ], historial_medico_1.default.instance.CrearHistorial);
 router.put('/:id', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos
 ], historial_medico_1.default.instance.putHistorial);
 router.delete('/:id', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos
 ], historial_medico_1.default.instance.deleteHistorial);
 exports.default = router;

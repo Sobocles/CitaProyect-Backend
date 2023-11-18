@@ -7,20 +7,23 @@ import ValidarJwt from '../middlewares/validar-jwt';
 
 const router = Router();
 
-router.get('/', 
+router.get('/' ,ValidarJwt.instance.validarJwt 
+, 
 getUsuarios );
 
-router.get('/all', getAllUsuarios);
+router.get('/all', ValidarJwt.instance.validarJwt,
+getAllUsuarios);
 
-router.get('/allCurso', getPacientesConCitasPagadasYEnCurso);
+router.get('/allCurso', ValidarJwt.instance.validarJwt,
+ getPacientesConCitasPagadasYEnCurso);
 
-router.get('/:id', 
+router.get('/:id', ValidarJwt.instance.validarJwt,
 getUsuario );
 
 router.post(
     '/',   
     [
-      
+      ValidarJwt.instance.validarJwt,
       check('nombre', 'El nombre es obligatorio').not().isEmpty(),
       check('apellidos', 'Los apellidos son obligatorios').not().isEmpty(),
       check('email', 'El correo es obligatorio').isEmail(),
@@ -40,6 +43,6 @@ router.post(
 putUsuario
 );
 
-router.delete('/:id', deleteUsuario );
+router.delete('/:id', ValidarJwt.instance.validarJwt, deleteUsuario );
 
 export default router;

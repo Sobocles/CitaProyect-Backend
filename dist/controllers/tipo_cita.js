@@ -14,15 +14,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const tipo_cita_1 = __importDefault(require("../models/tipo_cita"));
 const sequelize_1 = require("sequelize");
+const horario_medico_1 = __importDefault(require("../models/horario_medico"));
+const medico_1 = __importDefault(require("../models/medico"));
 class tipo_cita {
     constructor() {
         this.getTipoCitas = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const desde = Number(req.query.desde) || 0;
-                // Obtén el total de tipo de citas
-                const totalTipoCitas = yield tipo_cita_1.default.count();
-                // Obtén los detalles de todos los tipos de citas con paginación
+                // Obtén el total de tipo de citas activas
+                const totalTipoCitas = yield tipo_cita_1.default.count({
+                    where: { estado: 'activo' } // Filtra para contar solo las citas activas
+                });
+                // Obtén los detalles de todos los tipos de citas activas con paginación
                 const tipo_cita = yield tipo_cita_1.default.findAll({
+                    where: { estado: 'activo' },
                     offset: desde,
                     limit: 5, // o el límite que prefieras
                 });
@@ -39,9 +44,35 @@ class tipo_cita {
                 });
             }
         });
+        /*
+            getTipoCitas = async (req: Request, res: Response) => {
+              try {
+                  const desde = Number(req.query.desde) || 0;
+          
+                  // Obtén el total de tipo de citas
+                  const totalTipoCitas = await TipoCita.count();
+          
+                  // Obtén los detalles de todos los tipos de citas con paginación
+                  const tipo_cita = await TipoCita.findAll({
+                      offset: desde,
+                      limit: 5, // o el límite que prefieras
+                  });
+          
+                  res.json({
+                      ok: true,
+                      tipo_cita,
+                      total: totalTipoCitas
+                  });
+              } catch (error) {
+                  console.error(error);
+                  res.status(500).json({
+                      msg: 'Error en el servidor',
+                  });
+              }
+          };
+          */
         this.getTipoCita = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
-            console.log('ola');
             try {
                 const medico = yield tipo_cita_1.default.findByPk(id);
                 if (!medico) {
@@ -73,14 +104,17 @@ class tipo_cita {
             }
             console.log(especialidad_medica);
             try {
-                // Comprobar si la especialidad médica ya existe
+                // Comprobar si la especialidad médica activa ya existe
                 const existeEspecialidad = yield tipo_cita_1.default.findOne({
-                    where: { especialidad_medica: especialidad_medica }
+                    where: {
+                        especialidad_medica: especialidad_medica,
+                        estado: 'activo' // Solo considera las especialidades activas
+                    }
                 });
                 if (existeEspecialidad) {
                     return res.status(400).json({
                         ok: false,
-                        msg: `La especialidad médica '${especialidad_medica}' ya está registrada.`
+                        msg: `La especialidad médica '${especialidad_medica}' ya está registrada y activa.`
                     });
                 }
                 // Si no existe, crea un nuevo tipo de cita
@@ -134,18 +168,57 @@ class tipo_cita {
                 });
             }
         });
+        this.eliminarHorariosPorEspecialidad = (especialidadMedica) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                // Encontrar los IDs de los horarios médicos a eliminar
+                const horariosParaEliminar = yield horario_medico_1.default.findAll({
+                    attributes: ['idHorario'],
+                    include: [{
+                            model: medico_1.default,
+                            as: 'medico',
+                            where: { especialidad_medica: especialidadMedica }
+                        }]
+                });
+                // Mapear los horarios para obtener los IDs y filtrar los undefined
+                const idsHorariosParaEliminar = horariosParaEliminar
+                    .map(horario => horario.dataValues.idHorario)
+                    .filter((id) => id !== undefined); // Asegura que solo se incluyan números
+                // Si hay IDs para eliminar, ejecutar la consulta
+                if (idsHorariosParaEliminar.length > 0) {
+                    yield horario_medico_1.default.destroy({
+                        where: {
+                            idHorario: {
+                                [sequelize_1.Op.in]: idsHorariosParaEliminar
+                            }
+                        }
+                    });
+                }
+            }
+            catch (error) {
+                console.error('Error al eliminar horarios médicos:', error);
+                throw new Error('Error al eliminar horarios médicos');
+            }
+        });
         this.deleteTipoCita = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            const { id } = req.params; // Asegúrate de obtener el ID correctamente
+            const { id } = req.params;
             try {
                 const tipoCita = yield tipo_cita_1.default.findByPk(id);
                 if (!tipoCita) {
                     return res.status(404).json({ message: 'Tipo de cita no encontrado' });
                 }
-                yield tipoCita.destroy();
-                res.status(200).json({ message: 'Tipo de cita eliminado con éxito' });
+                // Guarda la especialidad médica antes de cambiar el estado a inactivo
+                const especialidadMedica = tipoCita.especialidad_medica;
+                // Cambiar el estado del TipoCita a inactivo
+                tipoCita.estado = 'inactivo';
+                yield tipoCita.save();
+                // Si se desactiva el TipoCita, eliminar los horarios médicos relacionados
+                if (especialidadMedica) {
+                    yield this.eliminarHorariosPorEspecialidad(especialidadMedica);
+                }
+                res.status(200).json({ message: 'Tipo de cita desactivado y horarios médicos eliminados con éxito' });
             }
             catch (error) {
-                res.status(500).json({ message: 'Error al eliminar el tipo de cita', error });
+                res.status(500).json({ message: 'Error al desactivar el tipo de cita', error });
             }
         });
         this.getEspecialidades = (req, res) => __awaiter(this, void 0, void 0, function* () {
@@ -155,7 +228,8 @@ class tipo_cita {
                     where: {
                         especialidad_medica: {
                             [sequelize_1.Op.ne]: null // Esto excluye las entradas donde especialidad_medica es NULL
-                        }
+                        },
+                        estado: 'activo' // Añade esta línea para incluir solo los tipos de cita activos
                     },
                     group: ['especialidad_medica']
                 });
@@ -169,6 +243,29 @@ class tipo_cita {
                 });
             }
         });
+        /*
+            getEspecialidades = async(req: Request, res: Response) => {
+              try {
+                  const especialidades = await TipoCita.findAll({
+                      attributes: ['especialidad_medica'],
+                      where: {
+                          especialidad_medica: {
+                              [Op.ne]: null // Esto excluye las entradas donde especialidad_medica es NULL
+                          }
+                      },
+                      group: ['especialidad_medica']
+                  });
+                  
+                  res.json({ especialidades });
+              } catch (error) {
+                  console.error(error);
+                  res.status(500).json({
+                      ok: false,
+                      msg: 'Hable con el administrador',
+                  });
+              }
+            };
+         */
     }
     static get instance() {
         return this._instance || (this._instance = new tipo_cita());

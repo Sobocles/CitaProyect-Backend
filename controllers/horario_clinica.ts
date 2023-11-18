@@ -17,33 +17,54 @@ export default class Horario_clinica {
     public static get instance() {
         return this._instance || (this._instance = new Horario_clinica());
     }
-
+    //este metodo se activa para ver el horario de la clinica en el menu de inicio de paciente
     obtenerHorariosClinica = async (req: Request, res: Response) => {
       try {
           const dias = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo'];
           const horariosClinica: any[] = [];
-  
+    
+          // Obtener todos los horarios médicos con médicos activos
+          const horarios = await HorarioMedic.findAll({
+              include: [{
+                  model: Medico,
+                  as: 'medico',
+                  where: { estado: 'activo' },
+                  attributes: []
+              }]
+          });
+    
           for (const dia of dias) {
-              const horarioApertura = await HorarioMedic.min('horaInicio', {
-                  where: { diaSemana: dia }
-              });
-  
-              const horarioCierre = await HorarioMedic.max('horaFinalizacion', {
-                  where: { diaSemana: dia }
-              });
-  
-              horariosClinica.push({
-                  dia,
-                  horarioApertura,
-                  horarioCierre
-              });
+              // Filtrar los horarios por día
+              const horariosDelDia = horarios.filter(horario => horario.diaSemana === dia);
+    
+              // Determinar si el día está abierto o cerrado
+              const estaAbierto = horariosDelDia.length > 0;
+    
+              if (estaAbierto) {
+                  // Calcular horario de apertura y cierre
+                  const horarioApertura = horariosDelDia.reduce((min, h) => h.horaInicio < min ? h.horaInicio : min, '23:59');
+                  const horarioCierre = horariosDelDia.reduce((max, h) => h.horaFinalizacion > max ? h.horaFinalizacion : max, '00:00');
+    
+                  horariosClinica.push({
+                      dia,
+                      horarioApertura,
+                      horarioCierre,
+                      estado: 'abierto'
+                  });
+              } else {
+                  // Marcar el día como cerrado
+                  horariosClinica.push({
+                      dia,
+                      estado: 'cerrado'
+                  });
+              }
           }
-  
+    
           return res.json({
               ok: true,
               horariosClinica
           });
-  
+    
       } catch (error) {
           console.error(error);
           return res.status(500).json({
@@ -51,7 +72,10 @@ export default class Horario_clinica {
               msg: 'Error inesperado al obtener los horarios. Por favor, revisa los logs.'
           });
       }
-  };
+    };
+    
+  
+  
 
         getHorarioClinica = async( req: Request , res: Response ) => {
             const { id } = req.params;

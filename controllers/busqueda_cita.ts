@@ -121,7 +121,7 @@ interface WhereClause {
 }
 
 export async function buscarHorarioMedico(tipoCita: any, diaSemana: string) {
-    console.log('AQUIIIIIIII ESTA LLEGANDO TIPO CITA', tipoCita); 
+    
 
     let whereClause: WhereClause = { diaSemana: diaSemana };
 

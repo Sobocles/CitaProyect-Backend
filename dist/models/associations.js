@@ -28,4 +28,5 @@ horario_medico_1.default.belongsTo(medico_1.default, { foreignKey: 'rut_medico',
 historial_medico_1.default.belongsTo(usuario_1.default, { foreignKey: 'rut_paciente', targetKey: 'rut', as: 'paciente', onDelete: 'CASCADE' });
 // Asociación de Factura con CitaMedica
 factura_1.default.belongsTo(cita_medica_1.default, { foreignKey: 'id_cita', targetKey: 'idCita', as: 'citaMedica', onDelete: 'CASCADE' });
+historial_medico_1.default.belongsTo(medico_1.default, { foreignKey: 'rut_medico', targetKey: 'rut', as: 'medico', onDelete: 'CASCADE' });
 //# sourceMappingURL=associations.js.map

@@ -43,7 +43,7 @@ const createOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             failure: "http://localhost:4200/payment-failure",
             pending: "http://localhost:8000/api/mercadoPago/pending"
         },
-        notification_url: "https://d4c8-2800-150-14e-fe7-31f1-773b-69ec-83af.ngrok.io/api/mercadoPago/webhook"
+        notification_url: "https://22a0-2800-150-14e-fe7-fc33-1563-7845-c456.ngrok.io/api/mercadoPago/webhook"
     };
     try {
         const result = yield mercadopago_1.default.preferences.create(preference);
@@ -92,13 +92,12 @@ const receiveWebhook = (req, res) => __awaiter(void 0, void 0, void 0, function*
                         where: { idCita: facturaData.id_cita },
                         include: [{
                                 model: medico_1.default,
-                                as: 'medico', // Asegúrate de que tienes configurada la relación en Sequelize con este alias
+                                as: 'medico',
                             }, {
                                 model: usuario_1.default,
-                                as: 'paciente', // Asegúrate de que tienes configurada la relación en Sequelize con este alias
+                                as: 'paciente',
                             }]
                     });
-                    console.log('AQUI ESTA LA CITA', cita);
                     if (cita && cita.medico && cita.paciente) {
                         // Preparar los detalles para el correo electrónico
                         const detallesCita = {
@@ -107,11 +106,8 @@ const receiveWebhook = (req, res) => __awaiter(void 0, void 0, void 0, function*
                             medicoNombre: `${cita.medico.nombre} ${cita.medico.apellidos}`,
                             especialidad: cita.medico.especialidad_medica,
                             pacienteNombre: `${cita.paciente.nombre} ${cita.paciente.apellidos}`,
-                            emailPaciente: cita.paciente.email, // Asegúrate de que el modelo Usuario tiene un campo de email
-                            // ... cualquier otro detalle necesario ...
+                            emailPaciente: cita.paciente.email,
                         };
-                        console.log('AQUI ESTA EL DETALLE DE LA CITA', detallesCita);
-                        // Envía el correo electrónico de confirmación
                         try {
                             yield emails_1.default.instance.enviarConfirmacionCita(detallesCita);
                             console.log('Correo de confirmación enviado al paciente:', detallesCita.emailPaciente);

@@ -16,6 +16,8 @@ export interface CitaMedicaAttributes {
   estado: string;
   descripcion?: string;
   idTipoCita?: number;
+  estado_actividad?: string; 
+
 }
 
 export class CitaMedica extends Model<CitaMedicaAttributes> {
@@ -29,6 +31,7 @@ export class CitaMedica extends Model<CitaMedicaAttributes> {
   public estado!: string;
   public descripcion?: string;
   public idTipoCita?: number;
+  public estado_actividad!: string;
   // Asociaciones
   public readonly medico?: Medico;
   public readonly paciente?: Usuario;
@@ -95,6 +98,11 @@ CitaMedica.init(
         key: 'idTipoCita',  // Asegúrate de que esta es la clave primaria en el modelo TipoCita
       }
     },
+    estado_actividad: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'activo' // Estado por defecto es 'activo'
+  },
   },
   {
     sequelize: db,

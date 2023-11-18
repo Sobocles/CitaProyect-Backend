@@ -2,6 +2,7 @@
 
 import nodemailer from 'nodemailer';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import InfoClinica from '../models/info-clinica';
 
 export default class Email {
     private static _instance: Email;

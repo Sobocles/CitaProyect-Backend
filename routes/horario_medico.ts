@@ -9,12 +9,12 @@ const router = Router();
 
 router.get('/',[
 
-
+    ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
 ],HorarioMedico.instance.getHorariosMedicos );
 
 router.get('/:id', [
- 
+  ValidarJwt.instance.validarJwt,
   validarCampos.instance.validarCampos
 ], HorarioMedico.instance.getHorarioMedico );
 
@@ -22,7 +22,7 @@ router.get('/:id', [
 router.post(
     '/',
     [
-
+      ValidarJwt.instance.validarJwt,
 
       // Puedes agregar más validaciones según tus necesidades
     ], HorarioMedico.instance.CrearHorarioMedico
@@ -31,12 +31,12 @@ router.post(
 
 router.put('/:id',
     [
-     
+      ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
     ], HorarioMedico.instance.putHorarioMedico);
 
 router.delete('/:id',[
-
+  ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
 ], HorarioMedico.instance.deleteHorarioMedico );
 

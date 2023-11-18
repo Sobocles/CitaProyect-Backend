@@ -117,7 +117,6 @@ function buscarTipoCita(especialidad_medica) {
 exports.buscarTipoCita = buscarTipoCita;
 function buscarHorarioMedico(tipoCita, diaSemana) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log('AQUIIIIIIII ESTA LLEGANDO TIPO CITA', tipoCita);
         let whereClause = { diaSemana: diaSemana };
         if (tipoCita.tipo_cita === 'Consulta Especialidad') {
             const medicosConEspecialidad = yield medico_1.default.findAll({

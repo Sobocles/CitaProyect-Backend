@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import HistorialMedico from '../models/historial_medico';
 import bcrypt from 'bcrypt';
+import Medico from '../models/medico';
 
 
 
@@ -39,16 +40,23 @@ export default class Historial_Medico {
                   });
               }
       
-              // Obtener los historiales con paginación
+              // Obtener los historiales con paginación e incluir el médico activo
               const historiales = await HistorialMedico.findAll({
                   where: { rut_paciente: id },
+                  include: [{
+                      model: Medico,
+                      as: 'medico', // Asegúrate de que 'as' coincida con cómo definiste la relación
+                      where: { estado: 'activo' },
+                      attributes: ['nombre', 'apellidos'] // Atributos a incluir del médico
+                  }],
                   offset: desde,
-                  limit: limite
+                  limit: limite,
+                  attributes: { exclude: ['rut_medico'] } // Excluye 'rut_medico' si no quieres mostrarlo
               });
       
               res.json({
                   ok: true,
-                  historiales, // Devuelve los historiales médicos paginados
+                  historiales, // Devuelve los historiales médicos paginados junto con el médico activo
                   total: totalHistoriales // Total de historiales
               });
           } catch (error) {

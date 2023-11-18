@@ -7,6 +7,7 @@ import ValidarJwt from '../middlewares/validar-jwt';
 const router = Router();
 
 router.post('/',[
+   
     check('email', 'El correo es obligatorio').isEmail(),
     check('password', 'La contraseña es obligatoria').not().isEmpty(),
     validarCampos.instance.validarCampos

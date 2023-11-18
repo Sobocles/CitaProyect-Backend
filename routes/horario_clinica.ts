@@ -11,30 +11,30 @@ const router = Router();
 
 router.get('/',[
 
-  
+    ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
 ],Horario_clinica.instance.obtenerHorariosClinica );
 
 router.get('/porEspecialidad',[
 
-  
+    ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
 ],Horario_clinica.instance.obtenerEspecialidadesPorDia );
 
 router.get('/Infoclinica',[
 
-  
+    ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
 ],Horario_clinica.instance.getInfoClinica );
 
 router.delete('/Infoclinica/:id',[
 
-  
+    ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
 ],Horario_clinica.instance.deleteInfoClinica );
 
 router.get('/:id', [
-
+    ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
 ],Horario_clinica.instance.getHorarioClinica );
 

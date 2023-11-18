@@ -11,9 +11,8 @@ class Usuario extends Model {
     public fecha_nacimiento!: string;
     public telefono!: string;
     public direccion!: string;
-    public rol!: string; // Agregar la propiedad 'rol' para el rol del usuario
-
-    // Asegura que TypeScript conozca estas propiedades
+    public rol!: string;
+    public estado!: string; // Nuevo campo agregado
 }
 
 Usuario.init(
@@ -54,9 +53,13 @@ Usuario.init(
         rol: {
             type: DataTypes.STRING,
             allowNull: false,
-            defaultValue: 'USER_ROLE', // Establece el valor por defecto para USER_ROLE
+            defaultValue: 'USER_ROLE',
         },
-     
+        estado: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            defaultValue: 'activo' // Estado por defecto es 'activo'
+        },
     },
     {
         sequelize: db,

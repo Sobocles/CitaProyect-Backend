@@ -15,7 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const medico_1 = __importDefault(require("../models/medico"));
 const horario_medico_1 = __importDefault(require("../models/horario_medico"));
 const sequelize_1 = require("sequelize");
-const tipo_cita_1 = __importDefault(require("../models/tipo_cita"));
 class HorarioMedico {
     constructor() {
         /*
@@ -38,10 +37,6 @@ class HorarioMedico {
             console.log('Obteniendo horarios médicos...');
             try {
                 const desde = Number(req.query.desde) || 0;
-                const especialidadesValidas = yield tipo_cita_1.default.findAll({
-                    attributes: ['especialidad_medica']
-                });
-                const especialidades = especialidadesValidas.map(ec => ec.especialidad_medica);
                 // Obtén el total de horarios de médicos activos
                 const totalHorarios = yield horario_medico_1.default.count({
                     include: [{
@@ -56,21 +51,14 @@ class HorarioMedico {
                             model: medico_1.default,
                             as: 'medico',
                             attributes: ['nombre', 'apellidos', 'especialidad_medica'],
-                            where: {
-                                estado: 'activo',
-                                especialidad_medica: {
-                                    [sequelize_1.Op.in]: especialidades
-                                }
-                            }
+                            where: { estado: 'activo' } // Filtrar por médicos activos
                         }],
                     offset: desde,
                     limit: 5,
                 });
-                // Filtrar horarios para excluir especialidades no válidas
-                const horariosFiltrados = horarios.filter(horario => horario.medico && especialidades.includes(horario.medico.especialidad_medica));
                 res.json({
                     ok: true,
-                    horarios: horariosFiltrados,
+                    horarios,
                     total: totalHorarios,
                 });
             }
@@ -196,7 +184,7 @@ class HorarioMedico {
                 if (horariosExistentes.length > 0) {
                     return res.status(400).json({
                         ok: false,
-                        msg: 'Ya tienes registrado a este medico en el mismo dia a la misma hora ingresada. Los horarios pueden ser consecutivos, pero no deben superponerse. Por ejemplo, si un horario de mismo medico termina a las 12:00, el siguiente puede comenzar a partir de las 12:00 pero no antes. por favor consulta los horarios de tus medicos para asignar horarios disponibles'
+                        msg: 'Ya tienes registrado a este mismo medico en la mismo dia y hora en el registro de horarios medicos. por favor revise el horario de sus medicos para evitar solapamiento de horarios de un mismo medico en la misma dia y hora, si un medico inicia su horario un dia lunes a las 12:00 y termina a las 17:00 no puede ingresar al mismo medico con una hora incio o una hora fin que se encuentre en este intervalo de tiempo'
                     });
                 }
                 const nuevoHorario = yield horario_medico_1.default.create({ diaSemana, horaInicio, horaFinalizacion, rut_medico });

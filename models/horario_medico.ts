@@ -1,9 +1,72 @@
 import { DataTypes, Model } from 'sequelize';
 import db from '../db/connection';
 import Medico from './medico';
-// Define el modelo de HorarioLaboral
 
 
+interface HorarioMedicAttributes {
+  idHorario?: number;
+  diaSemana: string;
+  horaInicio: string;
+  horaFinalizacion: string;
+  rut_medico: string;
+  disponibilidad?: boolean;
+  fechaCreacion?: Date;
+}
+
+class HorarioMedic extends Model<HorarioMedicAttributes> implements HorarioMedicAttributes {
+  public idHorario!: number;
+  public diaSemana!: string;
+  public horaInicio!: string;
+  public horaFinalizacion!: string;
+  public rut_medico!: string;
+  public disponibilidad?: boolean;
+  public fechaCreacion?: Date;
+
+  // Aquí puedes agregar métodos o propiedades adicionales si lo necesitas
+}
+
+HorarioMedic.init(
+  {
+    idHorario: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    diaSemana: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    horaInicio: {
+      type: DataTypes.TIME,
+      allowNull: false,
+    },
+    horaFinalizacion: {
+      type: DataTypes.TIME,
+      allowNull: false,
+    },
+    rut_medico: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    disponibilidad: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
+    fechaCreacion: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+    },
+  },
+  {
+    sequelize: db,
+    modelName: 'HorarioMedic',
+    tableName: 'horarioMedicos'
+  }
+);
+
+export default HorarioMedic;
+
+/*
 // Extendemos los atributos para incluir las relaciones
 interface HorarioMedicAttributes {
   idHorario?: number;
@@ -69,4 +132,4 @@ HorarioMedic.init(
 );
 
   
-  export default HorarioMedic;
+  export default HorarioMedic; */

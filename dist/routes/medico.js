@@ -7,17 +7,22 @@ const express_1 = require("express");
 const validar_campos_1 = __importDefault(require("../middlewares/validar-campos"));
 const medico_1 = __importDefault(require("../controllers/medico"));
 const express_validator_1 = require("express-validator");
+const validar_jwt_1 = __importDefault(require("../middlewares/validar-jwt"));
 const router = (0, express_1.Router)();
 router.get('/', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos
 ], medico_1.default.instance.getMedicos);
 router.get('/Especialidades', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos
 ], medico_1.default.instance.getMedicosEspecialidad);
 router.get('/all', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos
 ], medico_1.default.instance.getAllMedicos);
 router.get('/:id', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos
 ], medico_1.default.instance.getMedico);
 router.post('/', [
@@ -33,6 +38,7 @@ router.put('/:rut', [
     validar_campos_1.default.instance.validarCampos
 ], medico_1.default.instance.putMedico);
 router.delete('/:rut', [
+    validar_jwt_1.default.instance.validarJwt,
     validar_campos_1.default.instance.validarCampos
 ], medico_1.default.instance.deleteMedico);
 exports.default = router;

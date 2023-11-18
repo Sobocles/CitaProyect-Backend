@@ -10,12 +10,12 @@ const router = Router();
 
 router.get('/',[
 
-
+  ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos,
 ], Historial_Medico.instance.getHistoriales);
 
 router.get('/:id', [
-
+  ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
 ], Historial_Medico.instance.getHistorial);
 
@@ -36,14 +36,14 @@ router.post(
 
 router.put('/:id',
     [
-    
+      ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
     ], 
     Historial_Medico.instance.putHistorial
  );
 
 router.delete('/:id',[
-
+  ValidarJwt.instance.validarJwt,
     validarCampos.instance.validarCampos
 ], 
 Historial_Medico.instance.deleteHistorial

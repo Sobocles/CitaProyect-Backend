@@ -8,6 +8,8 @@ import Medico from '../models/medico';
 import Usuario from '../models/usuario';
 import Email from '../helpers/emails';
 
+
+
 export const createOrder = async (req: Request, res: Response) => {
     mercadopago.configure({
         access_token: "TEST-4655127474104645-110520-0cbd49c77cb403003bce27a712a781a1-1537929468",
@@ -37,7 +39,7 @@ export const createOrder = async (req: Request, res: Response) => {
         failure: "http://localhost:4200/payment-failure",
         pending: "http://localhost:8000/api/mercadoPago/pending"
       },
-      notification_url: "https://d4c8-2800-150-14e-fe7-31f1-773b-69ec-83af.ngrok.io/api/mercadoPago/webhook"
+      notification_url: "https://22a0-2800-150-14e-fe7-fc33-1563-7845-c456.ngrok.io/api/mercadoPago/webhook"
     };
     
     try {
@@ -94,13 +96,13 @@ export const receiveWebhook = async (req: Request, res: Response) => {
             where: { idCita: facturaData.id_cita },
             include: [{
               model: Medico,
-              as: 'medico', // Asegúrate de que tienes configurada la relación en Sequelize con este alias
+              as: 'medico', 
             }, {
               model: Usuario,
-              as: 'paciente', // Asegúrate de que tienes configurada la relación en Sequelize con este alias
+              as: 'paciente',
             }]
           });
-          console.log('AQUI ESTA LA CITA',cita);
+        
         
           if (cita && cita.medico && cita.paciente) {
             // Preparar los detalles para el correo electrónico
@@ -110,11 +112,11 @@ export const receiveWebhook = async (req: Request, res: Response) => {
               medicoNombre: `${cita.medico.nombre} ${cita.medico.apellidos}`,
               especialidad: cita.medico.especialidad_medica,
               pacienteNombre: `${cita.paciente.nombre} ${cita.paciente.apellidos}`,
-              emailPaciente: cita.paciente.email, // Asegúrate de que el modelo Usuario tiene un campo de email
-              // ... cualquier otro detalle necesario ...
+              emailPaciente: cita.paciente.email, 
+          
             };
-            console.log('AQUI ESTA EL DETALLE DE LA CITA',detallesCita)
-            // Envía el correo electrónico de confirmación
+            
+          
             try {
               await Email.instance.enviarConfirmacionCita(detallesCita);
               console.log('Correo de confirmación enviado al paciente:', detallesCita.emailPaciente);

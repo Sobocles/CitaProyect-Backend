@@ -29,3 +29,5 @@ HistorialMedico.belongsTo(Usuario, { foreignKey: 'rut_paciente', targetKey: 'rut
 
 // Asociación de Factura con CitaMedica
 Factura.belongsTo(CitaMedica, { foreignKey: 'id_cita', targetKey: 'idCita', as: 'citaMedica', onDelete: 'CASCADE' });
+
+HistorialMedico.belongsTo(Medico, { foreignKey: 'rut_medico', targetKey: 'rut', as: 'medico', onDelete: 'CASCADE' });

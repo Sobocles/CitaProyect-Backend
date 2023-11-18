@@ -65,6 +65,11 @@ CitaMedica.init({
             key: 'idTipoCita', // Asegúrate de que esta es la clave primaria en el modelo TipoCita
         }
     },
+    estado_actividad: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'activo' // Estado por defecto es 'activo'
+    },
 }, {
     sequelize: connection_1.default,
     modelName: 'CitaMedica',

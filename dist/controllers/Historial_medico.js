@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const historial_medico_1 = __importDefault(require("../models/historial_medico"));
+const medico_1 = __importDefault(require("../models/medico"));
 class Historial_Medico {
     constructor() {
         this.getHistoriales = (req, res) => __awaiter(this, void 0, void 0, function* () {
@@ -37,11 +38,18 @@ class Historial_Medico {
                         historiales: []
                     });
                 }
-                // Obtener los historiales con paginación
+                // Obtener los historiales con paginación e incluir el médico activo
                 const historiales = yield historial_medico_1.default.findAll({
                     where: { rut_paciente: id },
+                    include: [{
+                            model: medico_1.default,
+                            as: 'medico',
+                            where: { estado: 'activo' },
+                            attributes: ['nombre', 'apellidos'] // Atributos a incluir del médico
+                        }],
                     offset: desde,
-                    limit: limite
+                    limit: limite,
+                    attributes: { exclude: ['rut_medico'] } // Excluye 'rut_medico' si no quieres mostrarlo
                 });
                 res.json({
                     ok: true,

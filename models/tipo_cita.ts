@@ -1,22 +1,16 @@
-// Importa los módulos necesarios de Sequelize
 import { DataTypes, Model } from 'sequelize';
 import db from '../db/connection';
-import CitaMedica from './cita_medica';
-// Asegúrate de importar tu instancia Sequelize correctamente
+import CitaMedica from './cita_medica'; // Asegúrate de que este importe es correcto
 
-// Define el modelo TipoCitaMedica
 class TipoCita extends Model {
   public idTipo!: number;
   public tipo_cita!: string;
   public precio!: number;
   public especialidad_medica!: string;
   public duracion_cita!: number;
-
-  // Puedes definir relaciones con otras tablas aquí si es necesario
+  public estado!: string; // Nuevo campo agregado
 }
 
-
-// Inicializa el modelo TipoCitaMedica con los atributos y opciones de Sequelize
 TipoCita.init(
   {
     idTipo: {
@@ -34,22 +28,22 @@ TipoCita.init(
     },
     especialidad_medica: {
       type: DataTypes.STRING,
-
     },
-
     duracion_cita: {
-      type: DataTypes.NUMBER,
+      type: DataTypes.INTEGER, // Corregido a INTEGER
       allowNull: true,
+    },
+    estado: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'activo' // Estado por defecto es 'activo'
     },
   },
   {
-    sequelize: db, // Conecta el modelo a tu instancia de Sequelize
-    modelName: 'TipoCita', // Nombre de la tabla en la base de datos
-    tableName: 'tipo_cita' // Nombre real de la tabla en la base de datos
-}
+    sequelize: db,
+    modelName: 'TipoCita',
+    tableName: 'tipo_cita'
+  }
 );
 
-
-
-// Exporta el modelo para que pueda ser utilizado en otras partes de tu aplicación
 export default TipoCita;

@@ -23,29 +23,32 @@ class Cita {
         this.getCitas = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const desde = Number(req.query.desde) || 0;
-                // Obtén el total de citas
-                const totalCitas = yield cita_medica_1.default.count();
+                // Obtén el total de citas activas
+                const totalCitas = yield cita_medica_1.default.count({
+                    where: { estado_actividad: 'activo' } // Considera solo las citas activas
+                });
                 const citas = yield cita_medica_1.default.findAll({
                     include: [
                         {
                             model: usuario_1.default,
                             as: 'paciente',
-                            attributes: ['nombre'], // Nombre del paciente
+                            attributes: ['nombre'],
                         },
                         {
                             model: medico_1.default,
                             as: 'medico',
-                            attributes: ['nombre'], // Nombre del médico
+                            attributes: ['nombre'],
                         },
                         {
                             model: tipo_cita_1.default,
                             as: 'tipoCita',
-                            attributes: ['especialidad_medica'], // Tipo de cita
+                            attributes: ['especialidad_medica'],
                         },
                     ],
+                    where: { estado_actividad: 'activo' },
                     attributes: ['idCita', 'motivo', 'fecha', 'hora_inicio', 'hora_fin', 'estado'],
                     offset: desde,
-                    limit: 5, // Límite de registros por página
+                    limit: 5,
                 });
                 res.json({
                     ok: true,
@@ -58,38 +61,83 @@ class Cita {
                 res.status(500).json({ error: 'Error al obtener citas' });
             }
         });
+        /*
+        public getCitas = async (req: Request, res: Response) => {
+            try {
+                const desde = Number(req.query.desde) || 0;
+        
+                // Obtén el total de citas
+                const totalCitas = await CitaMedica.count();
+        
+                const citas = await CitaMedica.findAll({
+                    include: [
+                        {
+                            model: Usuario, // Modelo de Usuario (paciente)
+                            as: 'paciente', // Alias definido en la asociación
+                            attributes: ['nombre'], // Nombre del paciente
+                        },
+                        {
+                            model: Medico, // Modelo de Usuario (médico)
+                            as: 'medico', // Alias definido en la asociación
+                            attributes: ['nombre'], // Nombre del médico
+                        },
+                        {
+                            model: TipoCita, // Modelo de TipoCita
+                            as: 'tipoCita', // Alias definido en la asociación
+                            attributes: ['especialidad_medica'], // Tipo de cita
+                        },
+                    ],
+                    attributes: ['idCita', 'motivo', 'fecha', 'hora_inicio', 'hora_fin', 'estado'], // Otros atributos de CitaMedica
+                    offset: desde, // Offset para la paginación
+                    limit: 5, // Límite de registros por página
+                });
+        
+                res.json({
+                    ok: true,
+                    citas,
+                    total: totalCitas
+                });
+            } catch (error) {
+                console.error('Error al obtener citas:', error);
+                res.status(500).json({ error: 'Error al obtener citas' });
+            }
+        };
+      
+        */
         this.getCitasMedico = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { rut_medico } = req.params;
             const desde = Number(req.query.desde) || 0;
             const limite = Number(req.query.limite) || 5;
             try {
-                // Contar total de citas para este médico
+                // Contar total de citas activas para este médico
                 const totalCitas = yield cita_medica_1.default.count({
                     where: {
                         rut_medico: rut_medico,
                         estado: {
                             [sequelize_1.Op.or]: ['en_curso', 'pagado']
-                        }
+                        },
+                        estado_actividad: 'activo' // Solo considerar citas activas
                     }
                 });
-                // Obtener las citas con paginación y detalles de paciente y médico
+                // Obtener las citas activas con paginación y detalles de paciente y médico
                 const citas = yield cita_medica_1.default.findAll({
                     where: {
                         rut_medico: rut_medico,
                         estado: {
                             [sequelize_1.Op.or]: ['en_curso', 'pagado']
-                        }
+                        },
+                        estado_actividad: 'activo' // Solo considerar citas activas
                     },
                     include: [
                         {
                             model: usuario_1.default,
                             as: 'paciente',
-                            attributes: ['nombre', 'apellidos'] // Atributos del paciente
+                            attributes: ['nombre', 'apellidos']
                         },
                         {
                             model: medico_1.default,
                             as: 'medico',
-                            attributes: ['nombre', 'apellidos'] // Atributos del médico
+                            attributes: ['nombre', 'apellidos']
                         }
                     ],
                     attributes: { exclude: ['rut_paciente', 'rut_medico'] },
@@ -99,7 +147,7 @@ class Cita {
                 if (!citas || citas.length === 0) {
                     return res.status(404).json({
                         ok: false,
-                        msg: 'No se encontraron citas para este médico',
+                        msg: 'No se encontraron citas activas para este médico',
                     });
                 }
                 res.json({
@@ -116,9 +164,72 @@ class Cita {
                 });
             }
         });
+        /*
+          public getCitasMedico = async (req: Request, res: Response) => {
+            const { rut_medico } = req.params;
+            const desde = Number(req.query.desde) || 0;
+            const limite = Number(req.query.limite) || 5;
+        
+            try {
+                // Contar total de citas para este médico
+                const totalCitas = await CitaMedica.count({
+                    where: {
+                        rut_medico: rut_medico,
+                        estado: {
+                            [Op.or]: ['en_curso', 'pagado']
+                        }
+                    }
+                });
+        
+                // Obtener las citas con paginación y detalles de paciente y médico
+                const citas = await CitaMedica.findAll({
+                    where: {
+                        rut_medico: rut_medico,
+                        estado: {
+                            [Op.or]: ['en_curso', 'pagado']
+                        }
+                    },
+                    include: [
+                        {
+                            model: Usuario, // Modelo del paciente
+                            as: 'paciente', // Alias del paciente
+                            attributes: ['nombre', 'apellidos'] // Atributos del paciente
+                        },
+                        {
+                            model: Medico, // Modelo del médico
+                            as: 'medico', // Alias del médico
+                            attributes: ['nombre', 'apellidos'] // Atributos del médico
+                        }
+                    ],
+                    attributes: { exclude: ['rut_paciente', 'rut_medico'] },
+                    offset: desde,
+                    limit: limite
+                });
+        
+                if (!citas || citas.length === 0) {
+                    return res.status(404).json({
+                        ok: false,
+                        msg: 'No se encontraron citas para este médico',
+                    });
+                }
+        
+                res.json({
+                    ok: true,
+                    citas,
+                    total: totalCitas
+                });
+            } catch (error) {
+                console.log(error);
+                res.status(500).json({
+                    ok: false,
+                    msg: 'Error interno del servidor',
+                });
+            }
+        };
+        
+        */
         this.getCitaFactura = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const idCita = parseInt(req.params.idCita);
-            console.log('AQUI ESTA EL ID DE LA CITA QUE LLEGA AL METODO getCitaFactura', idCita);
             if (!idCita) {
                 return res.status(400).json({
                     ok: false,
@@ -147,7 +258,6 @@ class Cita {
                         // Puedes incluir más asociaciones si son necesarias
                     ]
                 });
-                console.log('AQUI ESTA LA INFORMACION DE LA CITA MEDICA', citaMedica);
                 if (!citaMedica) {
                     return res.status(404).json({
                         ok: false,
@@ -178,10 +288,77 @@ class Cita {
                 }
             }
         });
+        /*
+        
+        getCitaFactura = async (req: Request, res: Response) => {
+            const idCita = parseInt(req.params.idCita);
+          
+            if (!idCita) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'Es necesario el ID de la cita médica'
+                });
+            }
+        
+            try {
+                const citaMedica = await CitaMedica.findOne({
+                    where: { idCita },
+                    include: [
+                        {
+                            model: Factura,
+                            as: 'factura',
+                            required: false  // Esto es para permitir citas sin factura
+                        },
+                        {
+                            model: Medico,
+                            as: 'medico',
+                            attributes: ['nombre', 'apellidos', 'especialidad_medica']  // Solo incluir los atributos necesarios
+                        },
+                        {
+                            model: Usuario,
+                            as: 'paciente',
+                            attributes: ['nombre', 'apellidos', 'email']  // Solo incluir los atributos necesarios
+                        },
+                        // Puedes incluir más asociaciones si son necesarias
+                    ]
+                });
+            
+        
+                if (!citaMedica) {
+                    return res.status(404).json({
+                        ok: false,
+                        mensaje: 'Cita médica no encontrada'
+                    });
+                }
+        
+                return res.json({
+                    ok: true,
+                    citaMedica
+                });
+            } catch (error) {
+              
+                if (error instanceof Error) {
+                    console.error('Error al obtener la cita médica y su factura:', error.message);
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'Error al obtener la cita médica y su factura',
+                        error: error.message
+                    });
+                } else {
+                    //
+                    console.error('Error inesperado al obtener la cita médica y su factura');
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'Error inesperado al obtener la cita médica y su factura'
+                    });
+                }
+            }
+        };
+        
+        
+        */
         this.crearCita = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            console.log('AQUI ESTA LLEGANDO', req);
             let citaData = req.body.cita;
-            console.log('AQUI ESTA LLEGANDO', citaData);
             try {
                 const citaExistente = yield cita_medica_1.default.findByPk(citaData.idCita);
                 if (citaExistente) {
@@ -261,18 +438,19 @@ class Cita {
                         rut_paciente,
                         estado: {
                             [sequelize_1.Op.or]: ['pagado', 'en_curso']
-                        }
+                        },
+                        estado_actividad: 'activo' // Solo considerar citas activas
                     }
                 });
                 return !!citaExistente;
             }
             catch (error) {
                 console.error('Error al verificar las citas del usuario:', error);
-                throw error; // O manejar el error según la lógica de tu aplicación
+                throw error; // Manejo del error
             }
         });
+        //ESTE METODO ES CUANDO EL PACIENTE AGENDA UNA CITA
         this.crearCitaPaciente = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            // Desestructura los datos necesarios del cuerpo de la solicitud
             const { rutMedico, hora_inicio, hora_fin, idTipoCita, especialidad, rutPaciente, fecha } = req.body;
             const puedeAgendar = yield this.verificarCitasUsuario(rutPaciente);
             if (!puedeAgendar) {
@@ -289,13 +467,11 @@ class Cita {
                         idTipoCita,
                     });
                     // Sequelize automáticamente añade el ID al objeto 'cita'
-                    // Devuelve el ID de la cita y cualquier otro dato que desees
                     console.log('Cita creada con ID:', cita.idCita);
                     return res.status(201).json({
                         ok: true,
                         cita: {
-                            idCita: cita.idCita, // Asegúrate de que 'idCita' sea el nombre correcto de la propiedad en tu modelo
-                            // ... otros datos de la cita si son necesarios
+                            idCita: cita.idCita,
                         }
                     });
                 }
@@ -320,8 +496,6 @@ class Cita {
             try {
                 const { id } = req.params;
                 const { body } = req;
-                console.log('aqui esta el id', id);
-                console.log('aqui esta el body', body);
                 // Buscar el médico por su ID
                 const cita = yield cita_medica_1.default.findByPk(id);
                 if (!cita) {
@@ -352,11 +526,12 @@ class Cita {
                 const cita = yield cita_medica_1.default.findByPk(id);
                 if (!cita) {
                     return res.status(404).json({
-                        msg: 'No existe un cita con el id ' + id,
+                        msg: 'No existe una cita con el id ' + id,
                     });
                 }
-                yield cita.destroy();
-                res.json({ msg: 'Cita eliminadoa correctamente' });
+                // Cambiar el estado de la cita a 'inactivo'
+                yield cita.update({ estado_actividad: 'inactivo' });
+                res.json({ msg: 'Cita actualizada a inactivo correctamente' });
             }
             catch (error) {
                 console.error(error);
