@@ -23,21 +23,24 @@ class Cita {
         this.getCitas = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const desde = Number(req.query.desde) || 0;
-                // Obtén el total de citas activas
+                // Obtén el total de citas activas que no estén en estado 'no_pagado'
                 const totalCitas = yield cita_medica_1.default.count({
-                    where: { estado_actividad: 'activo' } // Considera solo las citas activas
+                    where: {
+                        estado_actividad: 'activo',
+                        estado: { [sequelize_1.Op.ne]: 'no_pagado' } // Excluye las citas con estado 'no_pagado'
+                    }
                 });
                 const citas = yield cita_medica_1.default.findAll({
                     include: [
                         {
                             model: usuario_1.default,
                             as: 'paciente',
-                            attributes: ['nombre'],
+                            attributes: ['nombre', 'apellidos'],
                         },
                         {
                             model: medico_1.default,
                             as: 'medico',
-                            attributes: ['nombre'],
+                            attributes: ['nombre', 'apellidos'],
                         },
                         {
                             model: tipo_cita_1.default,
@@ -45,7 +48,10 @@ class Cita {
                             attributes: ['especialidad_medica'],
                         },
                     ],
-                    where: { estado_actividad: 'activo' },
+                    where: {
+                        estado_actividad: 'activo',
+                        estado: { [sequelize_1.Op.ne]: 'no_pagado' } // Excluye las citas con estado 'no_pagado'
+                    },
                     attributes: ['idCita', 'motivo', 'fecha', 'hora_inicio', 'hora_fin', 'estado'],
                     offset: desde,
                     limit: 5,

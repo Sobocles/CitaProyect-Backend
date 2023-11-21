@@ -23,8 +23,6 @@ const factura_1 = __importDefault(require("../models/factura"));
 const getDocumentosColeccion = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const tabla = req.params.tabla;
     const busqueda = req.params.busqueda;
-    console.log('aqui esta la tabla', tabla);
-    console.log('aqui esta la busqueda', busqueda);
     let data = [];
     switch (tabla) {
         case 'usuarios':

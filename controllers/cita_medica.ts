@@ -15,49 +15,55 @@ export default class Cita {
     }
     
     public getCitas = async (req: Request, res: Response) => {
-      try {
-          const desde = Number(req.query.desde) || 0;
-  
-          // Obtén el total de citas activas
-          const totalCitas = await CitaMedica.count({
-              where: { estado_actividad: 'activo' } // Considera solo las citas activas
-          });
-  
-          const citas = await CitaMedica.findAll({
-              include: [
-                  {
-                      model: Usuario,
-                      as: 'paciente',
-                      attributes: ['nombre'],
-                  },
-                  {
-                      model: Medico,
-                      as: 'medico',
-                      attributes: ['nombre'],
-                  },
-                  {
-                      model: TipoCita,
-                      as: 'tipoCita',
-                      attributes: ['especialidad_medica'],
-                  },
-              ],
-              where: { estado_actividad: 'activo' }, // Considera solo las citas activas
-              attributes: ['idCita', 'motivo', 'fecha', 'hora_inicio', 'hora_fin', 'estado'],
-              offset: desde,
-              limit: 5,
-          });
-  
-          res.json({
-              ok: true,
-              citas,
-              total: totalCitas
-          });
-      } catch (error) {
-          console.error('Error al obtener citas:', error);
-          res.status(500).json({ error: 'Error al obtener citas' });
-      }
-  };
-  
+        try {
+            const desde = Number(req.query.desde) || 0;
+    
+            // Obtén el total de citas activas que no estén en estado 'no_pagado'
+            const totalCitas = await CitaMedica.count({
+                where: {
+                    estado_actividad: 'activo',
+                    estado: { [Op.ne]: 'no_pagado' } // Excluye las citas con estado 'no_pagado'
+                }
+            });
+    
+            const citas = await CitaMedica.findAll({
+                include: [
+                    {
+                        model: Usuario,
+                        as: 'paciente',
+                        attributes: ['nombre', 'apellidos'],
+                    },
+                    {
+                        model: Medico,
+                        as: 'medico',
+                        attributes: ['nombre','apellidos'],
+                    },
+                    {
+                        model: TipoCita,
+                        as: 'tipoCita',
+                        attributes: ['especialidad_medica'],
+                    },
+                ],
+                where: {
+                    estado_actividad: 'activo',
+                    estado: { [Op.ne]: 'no_pagado' } // Excluye las citas con estado 'no_pagado'
+                },
+                attributes: ['idCita', 'motivo', 'fecha', 'hora_inicio', 'hora_fin', 'estado'],
+                offset: desde,
+                limit: 5,
+            });
+    
+            res.json({
+                ok: true,
+                citas,
+                total: totalCitas
+            });
+        } catch (error) {
+            console.error('Error al obtener citas:', error);
+            res.status(500).json({ error: 'Error al obtener citas' });
+        }
+    };
+    
  
   /*
   public getCitas = async (req: Request, res: Response) => {

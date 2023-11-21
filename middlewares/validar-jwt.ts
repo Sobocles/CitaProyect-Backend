@@ -13,7 +13,7 @@ export default class ValidarJwt {
     public async validarJwt(req: Request | any, res: Response, next: NextFunction) {
         try {
             const { authorization } = req.headers;
-            console.log('SE VALIDO EL TOKEN DE CREAR USUARIO')
+            console.log('SE VALIDO EL TOKEN DE CREAR USUARIO',authorization)
             // Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiI2M2NhYjQwNDJhMDA0OGIxMmQwNjE3ZjgiLCJub21icmUiOiJvY3VsdXMgMiIsImFwZWxsaWRvIjoiZWxlY3RybyBzb2Z0IiwiaWF0IjoxNjc0NDExNzM5LCJleHAiOjE2NzQ0OTgxMzl9.lVHpjrRSRmtti67qJu3DeKhAO5-rLChPXFr0zVQscHg
             if (!authorization) {
                 return res.status(401).json({

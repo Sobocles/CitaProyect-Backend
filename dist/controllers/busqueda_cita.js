@@ -37,21 +37,14 @@ function numberToDay(dayNumber) {
 const buscarmedico = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { especialidad, fecha } = req.body;
     console.log(especialidad, fecha);
+    console.log('fecha que llega como parametro', fecha);
     // Convertimos la fecha de entrada a un objeto Date de JavaScript
     const fechaIngresada = new Date(fecha + 'T00:00:00Z'); // Asegúrate de que se compare al comienzo del día en UTC.
+    console.log('fecha ingresada', fechaIngresada);
     // Obtenemos la fecha actual y la ajustamos a medianoche en UTC para la comparación.
     const fechaActual = new Date();
     fechaActual.setUTCHours(0, 0, 0, 0);
     // Verificamos si la fecha ingresada es anterior o igual a la fecha actual.
-    if (fechaIngresada <= fechaActual) {
-        const mensaje = fechaIngresada < fechaActual ?
-            'No se pueden agendar bloques médicos en una fecha pasada.' :
-            'No se pueden agendar bloques médicos para el mismo día.';
-        return res.status(400).json({
-            ok: false,
-            msg: mensaje
-        });
-    }
     const [anio, mes, dia] = fecha.split('-');
     const fechaUTC = new Date(Date.UTC(Number(anio), Number(mes) - 1, Number(dia)));
     const diaSemana = numberToDay(fechaUTC.getUTCDay());
@@ -93,21 +86,12 @@ const buscarmedico = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 exports.buscarmedico = buscarmedico;
 function buscarTipoCita(especialidad_medica) {
     return __awaiter(this, void 0, void 0, function* () {
-        console.log('aqui', especialidad_medica);
-        const tipoCita = yield tipo_cita_1.default.findOne({ where: { especialidad_medica } });
-        console.log('aqui el tipo cita encontrado', tipoCita);
-        /*
-          dataValues: {
-     idTipo: 3,
-     tipo_cita: 'Consulta Especialidad',
-     precio: 5678,
-     especialidad_medica: 'Dermatologia',
-     color_etiqueta: '#3498db',
-     duracion_cita: 20,
-     createdAt: 2023-10-21T02:23:38.000Z,
-     updatedAt: 2023-10-22T14:04:39.000Z
-   },
-     */
+        const tipoCita = yield tipo_cita_1.default.findOne({
+            where: {
+                especialidad_medica,
+                estado: 'activo' // Asegúrate de buscar solo las citas activas
+            }
+        });
         if (!tipoCita) {
             throw new Error('Tipo de cita no encontrado');
         }
@@ -168,7 +152,12 @@ function buscarBloquesDisponibles(resultadoFormateado, duracionCita, fechaFormat
         }
         const medicoRut = resultadoFormateado.rut;
         // Obtener el nombre del médico utilizando el medicoRut
-        const medicoData = yield medico_1.default.findOne({ where: { rut: medicoRut } });
+        const medicoData = yield medico_1.default.findOne({
+            where: {
+                rut: medicoRut,
+                estado: 'activo' // Asegúrate de buscar solo médicos activos
+            }
+        });
         if (!medicoData)
             throw new Error('Médico no encontrado');
         const medicoNombre = `${medicoData.nombre} ${medicoData.apellidos}`;
@@ -193,7 +182,9 @@ function buscarBloquesDisponibles(resultadoFormateado, duracionCita, fechaFormat
                 rut_medico: medicoRut,
                 fecha: {
                     [sequelize_1.Op.eq]: new Date(fechaFormateada)
-                }
+                },
+                estado: { [sequelize_1.Op.ne]: 'no_pagado' },
+                estado_actividad: 'activo' // Añade esta línea para incluir solo citas con estado_actividad 'activo'
             }
         });
         const bloquesOcupados = citasProgramadas.map(cita => ({

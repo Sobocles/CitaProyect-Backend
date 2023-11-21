@@ -8,12 +8,12 @@ import ValidarJwt from '../middlewares/validar-jwt';
 const router = Router();
 
 
-router.get('/:busqueda', ValidarJwt.instance.validarJwt,
+router.get('/:busqueda', 
 
 getTodo );
 
 
-router.get('/coleccion/:tabla/:busqueda', ValidarJwt.instance.validarJwt,
+router.get('/coleccion/:tabla/:busqueda', 
  getDocumentosColeccion );
 
 

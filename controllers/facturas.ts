@@ -8,8 +8,9 @@ import Usuario from '../models/usuario';
 import Medico from '../models/medico';
 
 export async function eliminarFactura(req: Request, res: Response) {
-    const { id } = req.params;
 
+    const { id } = req.params;
+    console.log('AQUIII ESTA EL ID',id);
     try {
         const factura = await Factura.findByPk(id);
 
@@ -20,14 +21,16 @@ export async function eliminarFactura(req: Request, res: Response) {
             });
         }
 
-        await factura.destroy();
+        // Cambiar el estado de la factura a 'inactivo'
+        factura.estado = 'inactivo';
+        await factura.save();
 
         res.json({
             ok: true,
-            mensaje: 'Factura eliminada con éxito'
+            mensaje: 'Factura actualizada a inactivo con éxito'
         });
     } catch (error) {
-        console.error('Error al eliminar la factura:', error);
+        console.error('Error al actualizar el estado de la factura:', error);
         res.status(500).json({
             ok: false,
             mensaje: 'Error interno del servidor'
@@ -37,6 +40,14 @@ export async function eliminarFactura(req: Request, res: Response) {
 
 export async function getAllFacturas(req: Request, res: Response) {
     try {
+        // Parámetros de paginación
+        const desde = Number(req.query.desde) || 0;
+        const limite = 5; // Puedes ajustar este número según necesites
+
+        // Contar el total de facturas
+        const totalFacturas = await Factura.count();
+
+        // Obtener las facturas con paginación
         const facturas = await Factura.findAll({
             include: [{
                 model: CitaMedica,
@@ -55,13 +66,16 @@ export async function getAllFacturas(req: Request, res: Response) {
                 ],
                 attributes: ['motivo']
             }],
-            attributes: ['id_factura', 'payment_method_id', 'transaction_amount', 'monto_pagado', 'fecha_pago']
+            attributes: ['id_factura', 'payment_method_id', 'transaction_amount', 'monto_pagado', 'fecha_pago'],
+            offset: desde,
+            limit: limite
         });
 
         if (!facturas || facturas.length === 0) {
             return res.status(404).json({ message: 'No se encontraron facturas' });
         }
 
+        // Formatear las facturas para la respuesta
         const facturasFormateadas = facturas.map(factura => ({
             id_factura: factura.id_factura,
             payment_method_id: factura.payment_method_id,
@@ -83,15 +97,18 @@ export async function getAllFacturas(req: Request, res: Response) {
             }
         }));
 
+        // Enviar la respuesta
         res.json({
             ok: true,
-            facturas: facturasFormateadas
+            facturas: facturasFormateadas,
+            total: totalFacturas
         });
     } catch (error) {
         console.error('Error al obtener las facturas:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 }
+
 
 
 export async function obtenerFacturaPorId(req: Request, res: Response) {

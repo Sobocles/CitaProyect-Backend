@@ -6,17 +6,17 @@ import ValidarJwt from '../middlewares/validar-jwt';
 
 const router = Router();
 
-router.get('/especialidades', ValidarJwt.instance.validarJwt,
+router.get('/especialidades',
 tipo_cita.instance.getEspecialidades);
 
 router.get('/',[
 
-    ValidarJwt.instance.validarJwt,
+    
     validarCampos.instance.validarCampos
 ], tipo_cita.instance.getTipoCitas );
 
 router.get('/:id', [
-    ValidarJwt.instance.validarJwt,
+    
     validarCampos.instance.validarCampos
 ],tipo_cita.instance.getTipoCita  );
 
@@ -24,7 +24,7 @@ router.get('/:id', [
 router.post(
     '/',
     [
-        ValidarJwt.instance.validarJwt,
+        
         validarCampos.instance.validarCampos
     ], tipo_cita.instance.crearTipoCita
     
@@ -32,7 +32,7 @@ router.post(
 
 router.put('/:id',
     [
-        ValidarJwt.instance.validarJwt,
+        
     
     validarCampos.instance.validarCampos
     ], tipo_cita.instance.putTipoCita
@@ -40,7 +40,7 @@ router.put('/:id',
  );
 
 router.delete('/:id',[
-    ValidarJwt.instance.validarJwt,
+   
     validarCampos.instance.validarCampos
 ], tipo_cita.instance.deleteTipoCita
  );

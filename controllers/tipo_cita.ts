@@ -17,6 +17,7 @@ export default class tipo_cita {
     }
 
     getTipoCitas = async (req: Request, res: Response) => {
+   
         try {
             const desde = Number(req.query.desde) || 0;
     

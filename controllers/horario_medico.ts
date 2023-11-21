@@ -195,7 +195,7 @@ getHorariosMedicos = async (req: Request, res: Response) => {
           if (horariosExistentes.length > 0) {
             return res.status(400).json({
               ok: false,
-              msg: 'Ya tienes registrado a este mismo medico en la mismo dia y hora en el registro de horarios medicos. por favor revise el horario de sus medicos para evitar solapamiento de horarios de un mismo medico en la misma dia y hora, si un medico inicia su horario un dia lunes a las 12:00 y termina a las 17:00 no puede ingresar al mismo medico con una hora incio o una hora fin que se encuentre en este intervalo de tiempo'
+              msg: 'Ya tienes registrado a este mismo medico en la mismo dia y hora en el registro de horarios medicos. por favor revise el horario de sus medicos para evitar solapamiento de horarios de un mismo medico, (las hora de inicio y finalizacion no pueden ser las mismas o estar solapadas con el mismo medico en el mismo dia)'
             });
           }
           

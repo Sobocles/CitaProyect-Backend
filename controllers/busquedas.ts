@@ -12,8 +12,7 @@ import Factura from '../models/factura';
 export const getDocumentosColeccion = async (req: Request, res: Response) => {
     const tabla = req.params.tabla;
     const busqueda = req.params.busqueda;
-    console.log('aqui esta la tabla', tabla);
-    console.log('aqui esta la busqueda',busqueda);
+
       
     let data: any[] = [];
   

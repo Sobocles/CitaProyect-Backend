@@ -62,18 +62,18 @@ CitaMedica.init({
         allowNull: true,
         references: {
             model: 'TipoCita',
-            key: 'idTipoCita', // Asegúrate de que esta es la clave primaria en el modelo TipoCita
+            key: 'idTipoCita',
         }
     },
     estado_actividad: {
         type: sequelize_1.DataTypes.STRING,
         allowNull: false,
-        defaultValue: 'activo' // Estado por defecto es 'activo'
+        defaultValue: 'activo'
     },
 }, {
     sequelize: connection_1.default,
     modelName: 'CitaMedica',
-    tableName: 'citamedicas' // Si tienes un nombre de tabla específico
+    tableName: 'citamedicas'
 });
 exports.default = CitaMedica;
 //# sourceMappingURL=cita_medica.js.map

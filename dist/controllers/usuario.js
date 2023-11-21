@@ -50,10 +50,10 @@ exports.getUsuarios = getUsuarios;
 // Método para obtener a todos los pacientes
 const getAllUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Obtén los ruts de los pacientes con citas en estados 'en_curso' o 'no_asistido'
+        // Obtén los ruts de los pacientes con citas en estados 'en_curso', 'no_asistido' y 'pagado'
         const rutsPacientesConCitas = yield cita_medica_1.default.findAll({
             where: {
-                estado: ['en_curso', 'no_asistido']
+                estado: ['en_curso', 'no_asistido', 'pagado'] // Incluye 'pagado' en la lista
             },
             attributes: ['rut_paciente'],
             group: ['rut_paciente']
@@ -70,7 +70,7 @@ const getAllUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function*
                 rol: {
                     [sequelize_1.Op.ne]: 'ADMIN_ROLE' // Excluye a los usuarios con rol 'ADMIN_ROLE'
                 },
-                estado: 'activo' // Añade esta línea para incluir solo usuarios activos
+                estado: 'activo' // Incluye solo usuarios activos
             },
             attributes: {
                 exclude: ['password', 'createdAt', 'updatedAt']

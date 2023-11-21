@@ -1,22 +1,21 @@
 import { Model, DataTypes, Association } from 'sequelize';
 import db from '../db/connection';
-import { CitaMedica } from './cita_medica'; // Asegúrate de que este importe es correcto
+import { CitaMedica } from './cita_medica';
 
-// Define la interfaz para los atributos de Factura
 export interface FacturaAttributes {
     id_factura?: number;
     id_cita: number;
-    payment_method_id: string;
-    transaction_amount: number;
-    payment_status: string;
-    status_detail: string;
-    monto_pagado: number;
-    estado_pago: string;
-    fecha_pago: Date;
-    citaMedica?: CitaMedica; // Incluye la asociación con CitaMedica
+    payment_method_id?: string;
+    transaction_amount?: number;
+    payment_status?: string;
+    status_detail?: string;
+    monto_pagado?: number;
+    estado_pago?: string;
+    fecha_pago?: Date;
+    estado?: string; 
+    citaMedica?: CitaMedica;
 }
 
-// Extiende Model con FacturaAttributes
 export class Factura extends Model<FacturaAttributes> implements FacturaAttributes {
     public id_factura!: number;
     public id_cita!: number;
@@ -27,15 +26,14 @@ export class Factura extends Model<FacturaAttributes> implements FacturaAttribut
     public monto_pagado!: number;
     public estado_pago!: string;
     public fecha_pago!: Date;
+    public estado!: string; // Nuevo campo agregado
     public citaMedica?: CitaMedica;
 
-    // Asociaciones
     public static associations: {
         citaMedica: Association<Factura, CitaMedica>;
     };
 }
 
-// Inicialización del modelo Factura
 Factura.init({
     id_factura: {
         type: DataTypes.INTEGER,
@@ -56,7 +54,7 @@ Factura.init({
     },
     transaction_amount: {
         type: DataTypes.FLOAT,
-        allowNull: false,
+        allowNull: true,
     },
     payment_status: {
         type: DataTypes.STRING,
@@ -68,90 +66,25 @@ Factura.init({
     },
     monto_pagado: {
         type: DataTypes.FLOAT,
-        allowNull: false,
+        allowNull: true,
     },
     estado_pago: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
         defaultValue: 'pendiente',
     },
     fecha_pago: {
         type: DataTypes.DATE,
         allowNull: true,
     },
-}, {
-    sequelize: db,
-    modelName: 'Factura',
-});
-
-
-export default Factura;
-
-
-
-/*
-import { DataTypes, Model } from 'sequelize';
-import db from '../db/connection';
-
-class Factura extends Model {
-    public id_factura!: number; // Clave primaria única para cada factura
-    public id_cita!: number; // Clave extranjera que apunta a CitaMedica
-    public payment_method_id!: string; // Método de pago
-    public transaction_amount!: number; // Monto de la transacción
-    public payment_status!: string; // Estado del pago
-    public status_detail!: string; // Detalle del estado del pago
-    public monto_pagado!: number; // Monto pagado en la factura
-    public estado_pago!: string; // Estado general del pago: 'pendiente', 'completado', etc.
-    // ... otros campos relevantes para la factura
-}
-
-Factura.init({
-    id_factura: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-    },
-    id_cita: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        references: {
-            model: 'CitaMedica',
-            key: 'id_cita',
-        },
-    },
-    payment_method_id: {
+    estado: { // Nuevo campo agregado
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue: 'activo',
     },
-    transaction_amount: {
-        type: DataTypes.FLOAT,
-        allowNull: false,
-    },
-    payment_status: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    status_detail: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    },
-    monto_pagado: {
-        type: DataTypes.FLOAT,
-        allowNull: false,
-    },
-    estado_pago: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        defaultValue: 'pendiente',
-    },
-    // ... otros campos
 }, {
     sequelize: db,
     modelName: 'Factura',
 });
 
 export default Factura;
-
-
-
-*/

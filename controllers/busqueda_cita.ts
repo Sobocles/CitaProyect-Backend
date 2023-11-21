@@ -30,23 +30,17 @@ export const buscarmedico = async (req: Request, res: Response) => {
     const { especialidad, fecha } = req.body;
     console.log(especialidad, fecha);
 
+    console.log('fecha que llega como parametro',fecha);
+
     // Convertimos la fecha de entrada a un objeto Date de JavaScript
     const fechaIngresada = new Date(fecha + 'T00:00:00Z'); // Asegúrate de que se compare al comienzo del día en UTC.
-
+    console.log('fecha ingresada',fechaIngresada);
     // Obtenemos la fecha actual y la ajustamos a medianoche en UTC para la comparación.
     const fechaActual = new Date();
     fechaActual.setUTCHours(0, 0, 0, 0);
 
     // Verificamos si la fecha ingresada es anterior o igual a la fecha actual.
-    if (fechaIngresada <= fechaActual) {
-        const mensaje = fechaIngresada < fechaActual ? 
-            'No se pueden agendar bloques médicos en una fecha pasada.' : 
-            'No se pueden agendar bloques médicos para el mismo día.';
-        return res.status(400).json({
-            ok: false,
-            msg: mensaje
-        });
-    }
+
 
 
     const [anio, mes, dia] = fecha.split('-');
@@ -93,22 +87,13 @@ export const buscarmedico = async (req: Request, res: Response) => {
 
 
 export async function buscarTipoCita(especialidad_medica: any) {
-    console.log('aqui',especialidad_medica);
- 
-    const tipoCita = await TipoCita.findOne({ where: { especialidad_medica } });
-    console.log('aqui el tipo cita encontrado',tipoCita);
-       /*
-         dataValues: {
-    idTipo: 3,
-    tipo_cita: 'Consulta Especialidad',
-    precio: 5678,
-    especialidad_medica: 'Dermatologia',
-    color_etiqueta: '#3498db',
-    duracion_cita: 20,
-    createdAt: 2023-10-21T02:23:38.000Z,
-    updatedAt: 2023-10-22T14:04:39.000Z
-  },
-    */
+    const tipoCita = await TipoCita.findOne({ 
+        where: { 
+            especialidad_medica,
+            estado: 'activo' // Asegúrate de buscar solo las citas activas
+        } 
+    });
+
     if (!tipoCita) {
         throw new Error('Tipo de cita no encontrado');
     }
@@ -181,7 +166,13 @@ export async function buscarBloquesDisponibles(resultadoFormateado: any, duracio
     const medicoRut = resultadoFormateado.rut;
     
     // Obtener el nombre del médico utilizando el medicoRut
-    const medicoData = await Medico.findOne({ where: { rut: medicoRut } });
+    const medicoData = await Medico.findOne({ 
+        where: { 
+            rut: medicoRut,
+            estado: 'activo' // Asegúrate de buscar solo médicos activos
+        } 
+    });
+    
     if (!medicoData) throw new Error('Médico no encontrado');
     const medicoNombre = `${medicoData.nombre} ${medicoData.apellidos}`;
 
@@ -208,10 +199,13 @@ export async function buscarBloquesDisponibles(resultadoFormateado: any, duracio
             rut_medico: medicoRut,
             fecha: {
                 [Op.eq]: new Date(fechaFormateada)
-            }
-            
+            },
+            estado: { [Op.ne]: 'no_pagado' }, // Excluye las citas con estado 'no_pagado'
+            estado_actividad: 'activo' // Añade esta línea para incluir solo citas con estado_actividad 'activo'
         }
     });
+    
+    
     
 
    

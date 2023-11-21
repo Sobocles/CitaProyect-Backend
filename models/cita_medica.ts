@@ -57,7 +57,7 @@ CitaMedica.init(
       type: DataTypes.STRING,
       allowNull: false,
       references: {
-        model: 'Usuario',  // Asegúrate de que el nombre del modelo es correcto
+        model: 'Usuario',  
         key: 'rut',
       },
     },
@@ -65,7 +65,7 @@ CitaMedica.init(
       type: DataTypes.STRING,
       allowNull: false,
       references: {
-        model: 'Medico',  // Asegúrate de que el nombre del modelo es correcto
+        model: 'Medico',  
         key: 'rut',
       },
     },
@@ -94,20 +94,20 @@ CitaMedica.init(
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'TipoCita',  // Asegúrate de que el nombre del modelo es correcto
-        key: 'idTipoCita',  // Asegúrate de que esta es la clave primaria en el modelo TipoCita
+        model: 'TipoCita',  
+        key: 'idTipoCita', 
       }
     },
     estado_actividad: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: 'activo' // Estado por defecto es 'activo'
+      defaultValue: 'activo' 
   },
   },
   {
     sequelize: db,
     modelName: 'CitaMedica',
-    tableName: 'citamedicas'  // Si tienes un nombre de tabla específico
+    tableName: 'citamedicas'  
   }
 );
 

@@ -11,11 +11,11 @@ const router = Router();
 
 router.post(
     '/',
-    [
-      ValidarJwt.instance.validarJwt,
+   
+   
 
       // Puedes agregar más validaciones según tus necesidades
-    ],
+   
     buscarmedico
   );
 
