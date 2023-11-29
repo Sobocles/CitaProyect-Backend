@@ -129,7 +129,6 @@ class HorarioMedico {
         */
         this.getHorarioMedico = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
-            console.log(10);
             try {
                 const horario = yield horario_medico_1.default.findByPk(id);
                 if (!horario) {
@@ -152,7 +151,7 @@ class HorarioMedico {
             }
         });
         this.CrearHorarioMedico = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            const { diaSemana, horaInicio, horaFinalizacion, rut_medico } = req.body;
+            const { diaSemana, horaInicio, horaFinalizacion, rut_medico, inicio_colacion, fin_colacion } = req.body;
             try {
                 // Buscar horarios existentes que puedan solaparse
                 const horariosExistentes = yield horario_medico_1.default.findAll({
@@ -187,10 +186,15 @@ class HorarioMedico {
                         msg: 'Ya tienes registrado a este mismo medico en la mismo dia y hora en el registro de horarios medicos. por favor revise el horario de sus medicos para evitar solapamiento de horarios de un mismo medico, (las hora de inicio y finalizacion no pueden ser las mismas o estar solapadas con el mismo medico en el mismo dia)'
                     });
                 }
-                const nuevoHorario = yield horario_medico_1.default.create({ diaSemana, horaInicio, horaFinalizacion, rut_medico });
+                const nuevoHorario = yield horario_medico_1.default.create({ diaSemana, horaInicio, horaFinalizacion, rut_medico, inicio_colacion, fin_colacion });
                 res.json({
                     ok: true,
-                    horario: nuevoHorario
+                    diaSemana,
+                    horaInicio,
+                    horaFinalizacion,
+                    rut_medico,
+                    inicio_colacion,
+                    fin_colacion
                 });
             }
             catch (error) {
@@ -205,8 +209,6 @@ class HorarioMedico {
             try {
                 const { id } = req.params;
                 const { body } = req;
-                console.log('AQUI ESTA EL ID', id);
-                console.log('AQUI ESTA EL HORARIO MEDICO', body);
                 // Buscar el médico por su ID
                 const horarioMedico = yield horario_medico_1.default.findByPk(id);
                 if (!horarioMedico) {

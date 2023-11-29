@@ -49,7 +49,7 @@ const getDocumentosColeccion = (req, res) => __awaiter(void 0, void 0, void 0, f
             break;
         case 'horario_medico':
             data = yield horario_medico_1.default.findAll({
-                attributes: ['idHorario', 'diaSemana', 'horaInicio', 'horaFinalizacion', 'disponibilidad', 'fechaCreacion'],
+                attributes: ['idHorario', 'diaSemana', 'horaInicio', 'horaFinalizacion', 'inicio_colacion', 'fin_colacion', 'disponibilidad', 'fechaCreacion'],
                 where: {
                     diaSemana: { [sequelize_1.Op.like]: `%${busqueda}%` }
                 },
@@ -68,13 +68,13 @@ const getDocumentosColeccion = (req, res) => __awaiter(void 0, void 0, void 0, f
                     {
                         model: usuario_1.default,
                         as: 'paciente',
-                        attributes: ['nombre'],
+                        attributes: ['nombre', 'apellidos'],
                         required: true
                     },
                     {
                         model: medico_1.default,
                         as: 'medico',
-                        attributes: ['nombre'],
+                        attributes: ['nombre', 'apellidos'],
                         required: true
                     },
                     {
@@ -98,14 +98,16 @@ const getDocumentosColeccion = (req, res) => __awaiter(void 0, void 0, void 0, f
             break;
         case 'tipo_cita':
             data = yield tipo_cita_1.default.findAll({
-                attributes: ['idTipo', 'tipo_cita', 'precio', 'especialidad_medica', 'duracion_cita'],
+                attributes: ['idTipo', 'especialidad_medica', 'precio', 'duracion_cita'],
                 where: {
                     especialidad_medica: {
                         [sequelize_1.Op.like]: `%${busqueda}%`
-                    }
+                    },
+                    estado: 'activo' // Agregar esta línea para filtrar por estado activo
                 }
             });
             break;
+            ;
         case 'facturas':
             data = yield factura_1.default.findAll({
                 include: [{

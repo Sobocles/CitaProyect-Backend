@@ -414,8 +414,42 @@ getAllMedicos = async (req: Request, res: Response) => {
           };
         
 
+          public deleteMedico = async (req: Request, res: Response) => {
+            const { rut } = req.params;
+        
+            try {
+                const medico = await Medico.findByPk(rut);
+        
+                if (!medico) {
+                    return res.status(404).json({
+                        msg: 'No existe un médico con el rut ' + rut,
+                    });
+                }
+        
+                // Encuentra todas las citas médicas asociadas al médico
+                const citas = await CitaMedica.findAll({ where: { rut_medico: medico.rut } });
+        
+                // Cambia el estado de actividad de las citas médicas a "inactivo"
+                for (const cita of citas) {
+                    await cita.update({ estado_actividad: 'inactivo' });
+                }
+        
+                // Encuentra y elimina todos los horarios asociados al médico
+                await HorarioMedic.destroy({ where: { rut_medico: medico.rut } });
+        
+                // Cambiar el estado del médico a inactivo
+                await medico.update({ estado: 'inactivo' });
+        
+                res.json({ msg: 'Médico, sus citas médicas y horarios asociados actualizados a estado inactivo.' });
+            } catch (error) {
+                console.error(error);
+                res.status(500).json({ msg: 'Error en el servidor' });
+            }
+        };
+        
 
 
+/*
           public deleteMedico = async (req: Request, res: Response) => {
             const { rut } = req.params;
             console.log('AQUI ESTA EL RUT DEL MEDICO', rut);
@@ -447,7 +481,7 @@ getAllMedicos = async (req: Request, res: Response) => {
             }
         };
         
-        
+*/        
 /*
     public deleteMedico = async (req: Request, res: Response) => {
             const { rut } = req.params;
@@ -481,6 +515,54 @@ getAllMedicos = async (req: Request, res: Response) => {
 
 
 */
-        
+cambiarPasswordMedico = async (req: Request, res: Response) => {
+  console.log(req.body);
+  const { rut, password, newPassword } = req.body;
+
+  try {
+      // Buscar el médico por su RUT
+      const dbMedico = await Medico.findByPk(rut);
+      if (!dbMedico) {
+          return res.status(400).json({
+              msg: `No existe el médico con RUT: ${rut}`
+          });
+      }
+
+      // Verificar que la contraseña actual sea correcta
+      const validPassword = bcrypt.compareSync(password, dbMedico.password);
+      if (!validPassword) {
+          return res.status(400).json({
+              ok: false,
+              msg: `La contraseña actual es incorrecta`
+          });
+      }
+
+      // Verificar que la nueva contraseña no sea igual a la actual
+      const validNewPassword = bcrypt.compareSync(newPassword, dbMedico.password);
+      if (validNewPassword) {
+          return res.status(400).json({
+              ok: false,
+              msg: `La nueva contraseña no puede ser igual a la contraseña actual`
+          });
+      }
+
+      // Actualizar la contraseña
+      const salt = bcrypt.genSaltSync();
+      dbMedico.password = bcrypt.hashSync(newPassword, salt);
+      await dbMedico.save();
+
+      return res.status(200).json({
+          ok: true,
+          msg: `La contraseña del médico ${dbMedico.nombre} ha sido actualizada correctamente`
+      });
+
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+          ok: false,
+          msg: `Error al conectar con el servidor`
+      });
+  }
+};
           
  };

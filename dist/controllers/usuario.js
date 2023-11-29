@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUsuario = exports.putUsuario = exports.CrearUsuario = exports.getUsuario = exports.getPacientesConCitasPagadasYEnCurso = exports.getAllUsuarios = exports.getUsuarios = void 0;
+exports.cambiarPassword = exports.deleteUsuario = exports.putUsuario = exports.CrearUsuario = exports.getUsuario = exports.getPacientesConCitasPagadasYEnCurso = exports.getAllUsuarios = exports.getUsuarios = void 0;
 const usuario_1 = __importDefault(require("../models/usuario"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const sequelize_1 = require("sequelize");
+const bcrypt_2 = __importDefault(require("bcrypt"));
 const jwt_1 = __importDefault(require("../helpers/jwt"));
 const historial_medico_1 = __importDefault(require("../models/historial_medico"));
 const cita_medica_1 = __importDefault(require("../models/cita_medica"));
@@ -47,7 +48,7 @@ const getUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.getUsuarios = getUsuarios;
-// Método para obtener a todos los pacientes
+// Método para obtener a todos los pacientes (esto lo usa para obtener pacientes en el formulario historial medico ppara que escriba el medicco al paciente)
 const getAllUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Obtén los ruts de los pacientes con citas en estados 'en_curso', 'no_asistido' y 'pagado'
@@ -60,7 +61,7 @@ const getAllUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function*
         });
         // Extrae solo los ruts de los pacientes
         const rutsExcluidos = rutsPacientesConCitas.map(cita => cita.rut_paciente);
-        // Obtén los detalles de todos los pacientes que no tienen citas en esos estados,
+        // Obtener los detalles de todos los pacientes que no tienen citas en esos estados,
         // que no son administradores y que están activos
         const usuarios = yield usuario_1.default.findAll({
             where: {
@@ -139,24 +140,23 @@ exports.getAllUsuarios = getAllUsuarios;
 
 */
 const getPacientesConCitasPagadasYEnCurso = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { rut_medico } = req.params;
     try {
-        // Obtén los detalles de los pacientes con citas en estado 'en_curso' y 'pagado'
+        // Obtén los detalles de los pacientes con citas en estado 'en_curso' y 'pagado' con un médico específico
         const pacientesConCitasPagadas = yield cita_medica_1.default.findAll({
             where: {
-                estado: ['en_curso', 'pagado'] // Modificado para incluir 'pagado'
+                rut_medico,
+                estado: ['en_curso', 'pagado'],
+                estado_actividad: 'activo' // Solo citas activas
             },
             include: [{
                     model: usuario_1.default,
                     as: 'paciente',
                     where: {
-                        rol: {
-                            [sequelize_1.Op.ne]: 'ADMIN_ROLE' // Excluye a los usuarios con rol 'ADMIN_ROLE'
-                        },
-                        estado: 'activo' // Añade esta línea para incluir solo usuarios activos
+                        rol: { [sequelize_1.Op.ne]: 'ADMIN_ROLE' },
+                        estado: 'activo' // Solo usuarios activos
                     },
-                    attributes: {
-                        exclude: ['password', 'createdAt', 'updatedAt']
-                    }
+                    attributes: { exclude: ['password', 'createdAt', 'updatedAt'] }
                 }]
         });
         // Mapea los resultados para obtener solo los datos de los pacientes
@@ -436,6 +436,47 @@ const deleteUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.deleteUsuario = deleteUsuario;
+const cambiarPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(req.body);
+    const { rut, password, newPassword } = req.body;
+    try {
+        // agregar el password nuevo != password anterior
+        const dbUsuario = yield usuario_1.default.findByPk(rut);
+        if (!dbUsuario) {
+            return res.status(400).json({
+                msg: `No existe el usuario con id: ${rut}`
+            });
+        }
+        const validPassword = bcrypt_2.default.compareSync(password, dbUsuario.password);
+        if (!validPassword) {
+            return res.status(400).json({
+                ok: false,
+                msg: `El password es incorrecto`
+            });
+        }
+        const validNewPassword = bcrypt_2.default.compareSync(newPassword, dbUsuario.password);
+        if (validNewPassword) {
+            return res.status(400).json({
+                ok: false,
+                msg: `El password nuevo es igual al password anterior`
+            });
+        }
+        const salt = bcrypt_2.default.genSaltSync();
+        dbUsuario.password = bcrypt_2.default.hashSync(newPassword, salt);
+        dbUsuario.save();
+        return res.status(200).json({
+            ok: true,
+            msg: `El usuario ${dbUsuario.nombre} ha cambiado de contraseña`
+        });
+    }
+    catch (error) {
+        return res.status(500).json({
+            ok: true,
+            msg: `Error conectarse con el servidor`
+        });
+    }
+});
+exports.cambiarPassword = cambiarPassword;
 /*
 
   export const deleteUsuario = async (req: Request, res: Response) => {

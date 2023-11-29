@@ -2,11 +2,12 @@ import { Request, Response } from 'express';
 import Usuario from '../models/usuario';
 import bcrypt from 'bcrypt';
 import { Op } from 'sequelize';
-
+import bycript from "bcrypt";
 import JwtGenerate from '../helpers/jwt';
 import HistorialMedico from '../models/historial_medico';
 import CitaMedica from '../models/cita_medica';
 import Factura from '../models/factura';
+
 
 
 
@@ -42,7 +43,7 @@ export const getUsuarios = async (req: Request, res: Response) => {
 };
 
 
-// Método para obtener a todos los pacientes
+// Método para obtener a todos los pacientes (esto lo usa para obtener pacientes en el formulario historial medico ppara que escriba el medicco al paciente)
 export const getAllUsuarios = async (req: Request, res: Response) => {
   try {
       // Obtén los ruts de los pacientes con citas en estados 'en_curso', 'no_asistido' y 'pagado'
@@ -57,7 +58,7 @@ export const getAllUsuarios = async (req: Request, res: Response) => {
       // Extrae solo los ruts de los pacientes
       const rutsExcluidos = rutsPacientesConCitas.map(cita => cita.rut_paciente);
 
-      // Obtén los detalles de todos los pacientes que no tienen citas en esos estados,
+      // Obtener los detalles de todos los pacientes que no tienen citas en esos estados,
       // que no son administradores y que están activos
       const usuarios = await Usuario.findAll({
           where: {
@@ -140,24 +141,25 @@ export const getAllUsuarios = async (req: Request, res: Response) => {
 */
 
 export const getPacientesConCitasPagadasYEnCurso = async (req: Request, res: Response) => {
+  const { rut_medico } = req.params;
+  
+
   try {
-      // Obtén los detalles de los pacientes con citas en estado 'en_curso' y 'pagado'
+      // Obtén los detalles de los pacientes con citas en estado 'en_curso' y 'pagado' con un médico específico
       const pacientesConCitasPagadas = await CitaMedica.findAll({
           where: {
-              estado: ['en_curso', 'pagado'] // Modificado para incluir 'pagado'
+              rut_medico, // Filtra por el médico específico
+              estado: ['en_curso', 'pagado'], // Estados de la cita
+              estado_actividad: 'activo' // Solo citas activas
           },
           include: [{
-              model: Usuario, // Asumiendo que CitaMedica tiene una relación con Usuario
+              model: Usuario,
               as: 'paciente',
               where: {
-                  rol: {
-                      [Op.ne]: 'ADMIN_ROLE' // Excluye a los usuarios con rol 'ADMIN_ROLE'
-                  },
-                  estado: 'activo' // Añade esta línea para incluir solo usuarios activos
+                  rol: { [Op.ne]: 'ADMIN_ROLE' }, // Excluye a los usuarios con rol 'ADMIN_ROLE'
+                  estado: 'activo' // Solo usuarios activos
               },
-              attributes: {
-                  exclude: ['password', 'createdAt', 'updatedAt']
-              }
+              attributes: { exclude: ['password', 'createdAt', 'updatedAt'] }
           }]
       });
 
@@ -174,6 +176,8 @@ export const getPacientesConCitasPagadasYEnCurso = async (req: Request, res: Res
       res.status(500).send('Error interno del servidor');
   }
 };
+
+
 
 
 
@@ -475,6 +479,55 @@ export const CrearUsuario = async( req: Request, res: Response ) => {
     }
 };
 
+export const cambiarPassword = async (req: Request, res: Response) => {
+  console.log(req.body);
+  const { rut, password, newPassword } = req.body;
+  
+
+  try {
+      // agregar el password nuevo != password anterior
+      const dbUsuario = await Usuario.findByPk(rut);
+      if (!dbUsuario) {
+          return res.status(400).json({
+              msg: `No existe el usuario con id: ${rut}`
+          });
+      }
+      const validPassword = bycript.compareSync(password, dbUsuario.password);
+      if (!validPassword) {
+
+          return res.status(400).json({
+              ok: false,
+              msg: `El password es incorrecto`
+          });
+
+      }
+
+      const validNewPassword = bycript.compareSync(newPassword, dbUsuario.password);
+
+      if (validNewPassword) {
+          return res.status(400).json({
+              ok: false,
+              msg: `El password nuevo es igual al password anterior`
+          });
+      }
+
+      const salt = bycript.genSaltSync();
+      dbUsuario.password = bycript.hashSync(newPassword, salt);
+
+      dbUsuario.save();
+
+      return res.status(200).json({
+          ok: true,
+          msg: `El usuario ${dbUsuario.nombre} ha cambiado de contraseña`
+      });
+  } catch (error) {
+      return res.status(500).json({
+          ok: true,
+          msg: `Error conectarse con el servidor`
+      });
+  }
+}
+
 /*
 
   export const deleteUsuario = async (req: Request, res: Response) => {
@@ -510,6 +563,8 @@ export const CrearUsuario = async( req: Request, res: Response ) => {
 };
 
 */
+
+
 
 
 

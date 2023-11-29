@@ -106,8 +106,6 @@ interface WhereClause {
 }
 
 export async function buscarHorarioMedico(tipoCita: any, diaSemana: string) {
-    
-
     let whereClause: WhereClause = { diaSemana: diaSemana };
 
     if (tipoCita.tipo_cita === 'Consulta Especialidad') {
@@ -130,7 +128,7 @@ export async function buscarHorarioMedico(tipoCita: any, diaSemana: string) {
                     diaSemana: diaSemana,
                     rut_medico: medico.rut
                 },
-                attributes: ['rut_medico', 'horaInicio', 'horaFinalizacion'],
+                attributes: ['rut_medico', 'horaInicio', 'horaFinalizacion', 'inicio_colacion', 'fin_colacion'], // Incluir campos de colación
                 include: [
                     {
                         model: Medico,
@@ -150,11 +148,14 @@ export async function buscarHorarioMedico(tipoCita: any, diaSemana: string) {
             rut: row.rut_medico,
             horainicio: row.horaInicio,
             horafinalizacion: row.horaFinalizacion,
+            inicio_colacion: row.inicio_colacion, // Añadir estos datos
+            fin_colacion: row.fin_colacion,       // Añadir estos datos
             especialidad_medica: tipoCita.tipo_cita === 'Consulta general' ? row.medico.especialidad_medica : row.medico.especialidad_medica
         }));
     }
     return [];
 }
+
 
 
 
@@ -178,20 +179,25 @@ export async function buscarBloquesDisponibles(resultadoFormateado: any, duracio
 
     const horarioInicio = timeToMinutes(resultadoFormateado.horainicio);
     const horarioFin = timeToMinutes(resultadoFormateado.horafinalizacion);
+    const inicioColacion = resultadoFormateado.inicio_colacion ? timeToMinutes(resultadoFormateado.inicio_colacion) : null;
+    const finColacion = resultadoFormateado.fin_colacion ? timeToMinutes(resultadoFormateado.fin_colacion) : null;
     const intervalo = duracionCita;
 
     const bloquesPosibles = [];
     for (let i = horarioInicio; i + intervalo <= horarioFin; i += intervalo) {
-        bloquesPosibles.push({
-            rutMedico: medicoRut,
-            medicoNombre,  // Agregar el nombre del médico a cada bloque
-            hora_inicio: minutesToTime(i),
-            hora_fin: minutesToTime(i + intervalo),
-            precio: precioCita,
-            idTipoCita,
-            especialidad,
-            fecha: fechaFormateada
-        });
+        // Verifica si el bloque actual está dentro del intervalo de colación
+        if (!(inicioColacion !== null && finColacion !== null && i < finColacion && i + intervalo > inicioColacion)) {
+            bloquesPosibles.push({
+                rutMedico: medicoRut,
+                medicoNombre,  // Agregar el nombre del médico a cada bloque
+                hora_inicio: minutesToTime(i),
+                hora_fin: minutesToTime(i + intervalo),
+                precio: precioCita,
+                idTipoCita,
+                especialidad,
+                fecha: fechaFormateada
+            });
+        }
     }
 
     const citasProgramadas = await CitaMedica.findAll({
@@ -201,26 +207,23 @@ export async function buscarBloquesDisponibles(resultadoFormateado: any, duracio
                 [Op.eq]: new Date(fechaFormateada)
             },
             estado: { [Op.ne]: 'no_pagado' }, // Excluye las citas con estado 'no_pagado'
-            estado_actividad: 'activo' // Añade esta línea para incluir solo citas con estado_actividad 'activo'
+            estado_actividad: 'activo' // Incluir solo citas con estado_actividad 'activo'
         }
     });
     
-    
-    
-
-   
-
     const bloquesOcupados = citasProgramadas.map(cita => ({
         hora_inicio: cita.hora_inicio,
         hora_fin: cita.hora_fin
     }));
 
+    // Filtrar los bloques posibles excluyendo aquellos que coinciden con bloques ocupados o el intervalo de colación
     return bloquesPosibles.filter(bloquePosible =>
         !bloquesOcupados.some(bloqueOcupado =>
             bloquePosible.hora_inicio < bloqueOcupado.hora_fin && bloquePosible.hora_fin > bloqueOcupado.hora_inicio
         )
     );
 }
+
 
 
 

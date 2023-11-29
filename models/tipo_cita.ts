@@ -20,7 +20,7 @@ TipoCita.init(
     },
     tipo_cita: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     precio: {
       type: DataTypes.FLOAT, // O ajusta el tipo de dato según corresponda

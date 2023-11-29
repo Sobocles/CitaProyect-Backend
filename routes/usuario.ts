@@ -1,7 +1,7 @@
 
 import { Router } from 'express';
 import { check } from 'express-validator';
-import { getUsuario, getUsuarios, CrearUsuario, putUsuario, deleteUsuario, getAllUsuarios, getPacientesConCitasPagadasYEnCurso } from '../controllers/usuario'
+import { getUsuario, getUsuarios, CrearUsuario, putUsuario, deleteUsuario, getAllUsuarios, getPacientesConCitasPagadasYEnCurso, cambiarPassword } from '../controllers/usuario'
 import validarCampos from '../middlewares/validar-campos';
 import ValidarJwt from '../middlewares/validar-jwt';
 
@@ -13,7 +13,7 @@ getUsuarios );
 router.get('/all', 
 getAllUsuarios);
 
-router.get('/allCurso', 
+router.get('/allCurso/:rut_medico', 
  getPacientesConCitasPagadasYEnCurso);
 
 router.get('/:id', 
@@ -42,6 +42,12 @@ router.post(
 putUsuario
 );
 
-router.delete('/:id', deleteUsuario );
+router.delete('/:rut', deleteUsuario );
+
+router.post('/cambiarPassword',[
+  check('newPassword', 'El nuevo password es obligatorio').isLength({min:6}),
+  check('password', 'El password es obligatorio').isLength({min:6}),
+ 
+], cambiarPassword);
 
 export default router;

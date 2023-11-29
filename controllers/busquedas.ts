@@ -43,7 +43,7 @@ export const getDocumentosColeccion = async (req: Request, res: Response) => {
                 break;
                 case 'horario_medico':
                     data = await HorarioMedic.findAll({
-                        attributes: ['idHorario', 'diaSemana', 'horaInicio', 'horaFinalizacion', 'disponibilidad', 'fechaCreacion'],
+                        attributes: ['idHorario', 'diaSemana', 'horaInicio', 'horaFinalizacion', 'inicio_colacion', 'fin_colacion', 'disponibilidad', 'fechaCreacion'],
                         where: {
                             diaSemana: { [Op.like]: `%${busqueda}%` }
                         },
@@ -62,13 +62,13 @@ export const getDocumentosColeccion = async (req: Request, res: Response) => {
                                 {
                                     model: Usuario,
                                     as: 'paciente',
-                                    attributes: ['nombre'],  // Solo incluir el nombre del paciente
+                                    attributes: ['nombre', 'apellidos'],  // Solo incluir el nombre del paciente
                                     required: true
                                 },
                                 {
                                     model: Medico,
                                     as: 'medico',
-                                    attributes: ['nombre'],  // Solo incluir el nombre del médico
+                                    attributes: ['nombre', 'apellidos'],  // Solo incluir el nombre del médico
                                     required: true
                                 },
                                 {
@@ -92,16 +92,18 @@ export const getDocumentosColeccion = async (req: Request, res: Response) => {
                         break;
                     
               
-                case 'tipo_cita':
-                    data = await TipoCita.findAll({
-                        attributes: ['idTipo', 'tipo_cita', 'precio', 'especialidad_medica', 'duracion_cita'],
-                        where: {
-                            especialidad_medica: {
-                                [Op.like]: `%${busqueda}%`
-                            }
-                        }
-      });
-      break;
+                        case 'tipo_cita':
+                            data = await TipoCita.findAll({
+                                attributes: ['idTipo', 'especialidad_medica',  'precio',  'duracion_cita'],
+                                where: {
+                                    especialidad_medica: {
+                                        [Op.like]: `%${busqueda}%`
+                                    },
+                                    estado: 'activo' // Agregar esta línea para filtrar por estado activo
+                                }
+                            });
+                            break;
+                        ;
       case 'facturas':
             data = await Factura.findAll({
                 include: [{
@@ -131,6 +133,7 @@ export const getDocumentosColeccion = async (req: Request, res: Response) => {
             });
             break;
             case 'cita_medico':
+                
                 data = await CitaMedica.findAll({
                     attributes: ['idCita', 'motivo', 'fecha', 'hora_inicio', 'hora_fin', 'estado'],
                     include: [

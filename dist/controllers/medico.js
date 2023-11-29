@@ -24,6 +24,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const medico_1 = __importDefault(require("../models/medico"));
+const horario_medico_1 = __importDefault(require("../models/horario_medico"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jwt_1 = __importDefault(require("../helpers/jwt"));
 const tipo_cita_1 = __importDefault(require("../models/tipo_cita"));
@@ -387,7 +388,6 @@ class Medicos {
         });
         this.deleteMedico = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { rut } = req.params;
-            console.log('AQUI ESTA EL RUT DEL MEDICO', rut);
             try {
                 const medico = yield medico_1.default.findByPk(rut);
                 if (!medico) {
@@ -401,15 +401,50 @@ class Medicos {
                 for (const cita of citas) {
                     yield cita.update({ estado_actividad: 'inactivo' });
                 }
+                // Encuentra y elimina todos los horarios asociados al médico
+                yield horario_medico_1.default.destroy({ where: { rut_medico: medico.rut } });
                 // Cambiar el estado del médico a inactivo
                 yield medico.update({ estado: 'inactivo' });
-                res.json({ msg: 'Médico y sus citas médicas asociadas actualizadas a estado inactivo.' });
+                res.json({ msg: 'Médico, sus citas médicas y horarios asociados actualizados a estado inactivo.' });
             }
             catch (error) {
                 console.error(error);
                 res.status(500).json({ msg: 'Error en el servidor' });
             }
         });
+        /*
+                  public deleteMedico = async (req: Request, res: Response) => {
+                    const { rut } = req.params;
+                    console.log('AQUI ESTA EL RUT DEL MEDICO', rut);
+                
+                    try {
+                        const medico = await Medico.findByPk(rut);
+                
+                        if (!medico) {
+                            return res.status(404).json({
+                                msg: 'No existe un médico con el rut ' + rut,
+                            });
+                        }
+                
+                        // Encuentra todas las citas médicas asociadas al médico
+                        const citas = await CitaMedica.findAll({ where: { rut_medico: medico.rut } });
+                
+                        // Cambia el estado de actividad de las citas médicas a "inactivo"
+                        for (const cita of citas) {
+                            await cita.update({ estado_actividad: 'inactivo' });
+                        }
+                
+                        // Cambiar el estado del médico a inactivo
+                        await medico.update({ estado: 'inactivo' });
+                
+                        res.json({ msg: 'Médico y sus citas médicas asociadas actualizadas a estado inactivo.' });
+                    } catch (error) {
+                        console.error(error);
+                        res.status(500).json({ msg: 'Error en el servidor' });
+                    }
+                };
+                
+        */
         /*
             public deleteMedico = async (req: Request, res: Response) => {
                     const { rut } = req.params;
@@ -443,6 +478,50 @@ class Medicos {
         
         
         */
+        this.cambiarPasswordMedico = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            console.log(req.body);
+            const { rut, password, newPassword } = req.body;
+            try {
+                // Buscar el médico por su RUT
+                const dbMedico = yield medico_1.default.findByPk(rut);
+                if (!dbMedico) {
+                    return res.status(400).json({
+                        msg: `No existe el médico con RUT: ${rut}`
+                    });
+                }
+                // Verificar que la contraseña actual sea correcta
+                const validPassword = bcrypt_1.default.compareSync(password, dbMedico.password);
+                if (!validPassword) {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: `La contraseña actual es incorrecta`
+                    });
+                }
+                // Verificar que la nueva contraseña no sea igual a la actual
+                const validNewPassword = bcrypt_1.default.compareSync(newPassword, dbMedico.password);
+                if (validNewPassword) {
+                    return res.status(400).json({
+                        ok: false,
+                        msg: `La nueva contraseña no puede ser igual a la contraseña actual`
+                    });
+                }
+                // Actualizar la contraseña
+                const salt = bcrypt_1.default.genSaltSync();
+                dbMedico.password = bcrypt_1.default.hashSync(newPassword, salt);
+                yield dbMedico.save();
+                return res.status(200).json({
+                    ok: true,
+                    msg: `La contraseña del médico ${dbMedico.nombre} ha sido actualizada correctamente`
+                });
+            }
+            catch (error) {
+                console.error(error);
+                return res.status(500).json({
+                    ok: false,
+                    msg: `Error al conectar con el servidor`
+                });
+            }
+        });
     }
     static get instance() {
         return this._instance || (this._instance = new Medicos());

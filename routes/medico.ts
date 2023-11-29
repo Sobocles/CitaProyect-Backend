@@ -46,6 +46,14 @@ router.post(
     Medicos.instance.CrearMedico
   );
 
+  router.post(
+    '/cambiarPassword',
+    [
+      
+    ],
+    Medicos.instance.cambiarPasswordMedico
+  );
+
 router.put('/:rut',
     [
      

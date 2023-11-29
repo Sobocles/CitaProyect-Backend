@@ -15,7 +15,7 @@ TipoCita.init({
     },
     tipo_cita: {
         type: sequelize_1.DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
     },
     precio: {
         type: sequelize_1.DataTypes.FLOAT,

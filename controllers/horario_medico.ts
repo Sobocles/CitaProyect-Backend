@@ -133,7 +133,7 @@ getHorariosMedicos = async (req: Request, res: Response) => {
 */
         getHorarioMedico = async( req: Request , res: Response ) => {
           const { id } = req.params;
-          console.log(10);
+         
 
       try {
           const horario = await HorarioMedic.findByPk(id);
@@ -161,8 +161,9 @@ getHorariosMedicos = async (req: Request, res: Response) => {
         
 
       CrearHorarioMedico = async(req: Request, res: Response) => {
-        const { diaSemana, horaInicio, horaFinalizacion, rut_medico } = req.body;
-      
+        const { diaSemana, horaInicio, horaFinalizacion, rut_medico, inicio_colacion, fin_colacion } = req.body;
+
+
         try {
           // Buscar horarios existentes que puedan solaparse
           const horariosExistentes = await HorarioMedic.findAll({
@@ -200,10 +201,15 @@ getHorariosMedicos = async (req: Request, res: Response) => {
           }
           
       
-          const nuevoHorario = await HorarioMedic.create({ diaSemana, horaInicio, horaFinalizacion, rut_medico });
+          const nuevoHorario = await HorarioMedic.create({ diaSemana, horaInicio, horaFinalizacion, rut_medico, inicio_colacion, fin_colacion  });
           res.json({
             ok: true,
-            horario: nuevoHorario
+            diaSemana, 
+            horaInicio, 
+            horaFinalizacion, 
+            rut_medico, 
+            inicio_colacion, // Añadir esta línea
+            fin_colacion 
           });
       
         } catch (error) {
@@ -226,8 +232,7 @@ getHorariosMedicos = async (req: Request, res: Response) => {
             try {
               const { id } = req.params;
               const { body } = req;
-              console.log('AQUI ESTA EL ID',id);
-              console.log('AQUI ESTA EL HORARIO MEDICO',body);
+
         
               // Buscar el médico por su ID
               const horarioMedico = await HorarioMedic.findByPk(id);
@@ -281,5 +286,5 @@ getHorariosMedicos = async (req: Request, res: Response) => {
               });
             }
          
-}
+      }
 }
