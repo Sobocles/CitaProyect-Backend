@@ -42,7 +42,7 @@ export async function getAllFacturas(req: Request, res: Response) {
     try {
         // Parámetros de paginación
         const desde = Number(req.query.desde) || 0;
-        const limite = 5; // Puedes ajustar este número según necesites
+        const limite = 5; 
 
         // Contar el total de facturas
         const totalFacturas = await Factura.count();

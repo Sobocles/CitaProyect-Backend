@@ -1,18 +1,19 @@
 import { Request, Response } from 'express';
 import Usuario from '../models/usuario';
 import Medico from '../models/medico';
-import { Op } from 'sequelize'; // Importa el operador Op para realizar búsquedas avanzadas
+import { Op } from 'sequelize'; 
 import HorarioMedic from '../models/horario_medico';
 import CitaMedica from '../models/cita_medica';
 import TipoCita from '../models/tipo_cita';
 import Factura from '../models/factura';
+import HistorialMedico from '../models/historial_medico';
 
 
 
 export const getDocumentosColeccion = async (req: Request, res: Response) => {
     const tabla = req.params.tabla;
     const busqueda = req.params.busqueda;
-
+    console.log('AQUI ESTA LA TABLA',tabla);
       
     let data: any[] = [];
   
@@ -24,7 +25,7 @@ export const getDocumentosColeccion = async (req: Request, res: Response) => {
                     nombre: {
                         [Op.like]: `%${busqueda}%`
                     },
-                    estado: 'activo' // Añade esta línea para filtrar solo usuarios activos
+                    estado: 'activo' 
                 }
             });
             break;
@@ -73,7 +74,7 @@ export const getDocumentosColeccion = async (req: Request, res: Response) => {
                                 },
                                 {
                                     model: TipoCita,
-                                    as: 'tipoCita', // Este alias debe coincidir con el definido en tus asociaciones
+                                    as: 'tipoCita', 
                                     attributes: ['especialidad_medica'],
                                 }
                             ],
@@ -104,34 +105,46 @@ export const getDocumentosColeccion = async (req: Request, res: Response) => {
                             });
                             break;
                         ;
-      case 'facturas':
-            data = await Factura.findAll({
-                include: [{
-                    model: CitaMedica,
-                    as: 'citaMedica',
-                    include: [
-                        {
-                            model: Usuario,
-                            as: 'paciente',
-                            attributes: ['rut', 'nombre', 'apellidos'],
-                            where: {
-                                nombre: {
-                                    [Op.like]: `%${busqueda}%`
-                                }
-                            },
-                            required: true
-                        },
-                        {
-                            model: Medico,
-                            as: 'medico',
-                            attributes: ['rut', 'nombre', 'apellidos']
-                        }
-                    ],
-                    attributes: ['motivo']
-                }],
-                attributes: ['id_factura', 'payment_method_id', 'transaction_amount', 'monto_pagado', 'fecha_pago']
-            });
-            break;
+                        case 'facturas':
+                            data = await Factura.findAll({
+                                where: {
+                                    estado: 'activo' 
+                                },
+                                include: [{
+                                    model: CitaMedica,
+                                    as: 'citaMedica',
+                                    where: {
+                                        estado_actividad: 'activo' 
+                                    },
+                                    include: [
+                                        {
+                                            model: Usuario,
+                                            as: 'paciente',
+                                            attributes: ['rut', 'nombre', 'apellidos'],
+                                            where: {
+                                                nombre: {
+                                                    [Op.like]: `%${busqueda}%`
+                                                },
+                                                estado: 'activo' 
+                                            },
+                                            required: true
+                                        },
+                                        {
+                                            model: Medico,
+                                            as: 'medico',
+                                            attributes: ['rut', 'nombre', 'apellidos'],
+                                            where: {
+                                                estado: 'activo' 
+                                            },
+                                            required: true
+                                        }
+                                    ],
+                                    attributes: ['motivo']
+                                }],
+                                attributes: ['id_factura', 'payment_method_id', 'transaction_amount', 'monto_pagado', 'fecha_pago']
+                            });
+                            break;
+                        
             case 'cita_medico':
                 
                 data = await CitaMedica.findAll({
@@ -140,24 +153,24 @@ export const getDocumentosColeccion = async (req: Request, res: Response) => {
                         {
                             model: Usuario,
                             as: 'paciente',
-                            attributes: ['nombre'],  // Solo incluir el nombre del paciente
+                            attributes: ['nombre'],  
                             required: true,
                             where: {
-                                estado: 'activo' // Asegúrate de que los pacientes estén activos
+                                estado: 'activo' 
                             }
                         },
                         {
                             model: Medico,
                             as: 'medico',
-                            attributes: ['nombre'],  // Solo incluir el nombre del médico
+                            attributes: ['nombre'], 
                             required: true,
                             where: {
-                                estado: 'activo' // Asegúrate de que los médicos estén activos
+                                estado: 'activo' 
                             }
                         },
                         {
                             model: TipoCita,
-                            as: 'tipoCita', // Este alias debe coincidir con el definido en tus asociaciones
+                            as: 'tipoCita', 
                             attributes: ['especialidad_medica'],
                         }
                     ],
@@ -170,6 +183,25 @@ export const getDocumentosColeccion = async (req: Request, res: Response) => {
                     }
                 });
                 break;
+                case 'historiales':
+                        data = await HistorialMedico.findAll({
+                            include: [{
+                                model: Usuario, 
+                                as: 'paciente', 
+                                where: {
+                                    nombre: {
+                                        [Op.like]: `%${busqueda}%`
+                                    },
+                                    estado: 'activo' 
+                                },
+                                attributes: ['nombre', 'apellidos', 'rut'] 
+                            }],
+                            attributes: ['id_historial', 'diagnostico', 'medicamento', 'notas', 'fecha_consulta', 'archivo', 'rut_medico', 'estado'], // Atributos del historial que quieres incluir
+                            where: {
+                                estado: 'activo' 
+                            }
+                        });
+                        break;
             
 
             

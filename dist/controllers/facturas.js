@@ -53,7 +53,7 @@ function getAllFacturas(req, res) {
         try {
             // Parámetros de paginación
             const desde = Number(req.query.desde) || 0;
-            const limite = 5; // Puedes ajustar este número según necesites
+            const limite = 5;
             // Contar el total de facturas
             const totalFacturas = yield factura_1.default.count();
             // Obtener las facturas con paginación

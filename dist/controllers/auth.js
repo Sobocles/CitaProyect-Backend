@@ -35,7 +35,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const usuario_1 = __importDefault(require("../models/usuario")); // Asegúrate de importar el modelo correcto
+const usuario_1 = __importDefault(require("../models/usuario"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const menu_frontend_1 = require("../helpers/menu-frontend");
 const generatePassword = __importStar(require("generate-password"));
@@ -50,7 +50,6 @@ class Usuarios {
             const { email, password } = req.body;
             let userOrMedico;
             try {
-                // Intenta encontrar un Usuario con el email
                 userOrMedico = yield usuario_1.default.findOne({ where: { email } });
                 // Verificar si el usuario está inactivo
                 if (userOrMedico && userOrMedico.estado === 'inactivo') {
@@ -348,7 +347,7 @@ class Usuarios {
                 service: 'gmail',
                 auth: {
                     user: 'smoralespincheira@gmail.com',
-                    pass: 'puppetmaster.9' // Cambia esto por tu contraseña
+                    pass: 'puppetmaster.9'
                 }
             });
             let mailOptions = {

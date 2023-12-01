@@ -166,7 +166,6 @@ class Horario_clinica {
             }
         });
         this.getInfoClinica = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            console.log('OLLLLLAAAAA');
             try {
                 // Obtén los detalles de todos los médicos
                 const Info = yield info_clinica_1.default.findAll({});

@@ -120,7 +120,7 @@ class Cita {
                     where: {
                         rut_medico: rut_medico,
                         estado: {
-                            [sequelize_1.Op.or]: ['en_curso', 'pagado']
+                            [sequelize_1.Op.or]: ['en_curso', 'pagado', 'terminado']
                         },
                         estado_actividad: 'activo' // Solo considerar citas activas
                     }
@@ -130,7 +130,7 @@ class Cita {
                     where: {
                         rut_medico: rut_medico,
                         estado: {
-                            [sequelize_1.Op.or]: ['en_curso', 'pagado']
+                            [sequelize_1.Op.or]: ['en_curso', 'pagado', 'terminado']
                         },
                         estado_actividad: 'activo' // Solo considerar citas activas
                     },
@@ -234,6 +234,67 @@ class Cita {
         };
         
         */
+        this.getCitasPaciente = (req, res) => __awaiter(this, void 0, void 0, function* () {
+            const { rut_paciente } = req.params;
+            console.log('aqui esta el rut', rut_paciente);
+            const desde = Number(req.query.desde) || 0;
+            const limite = Number(req.query.limite) || 5;
+            try {
+                // Contar total de citas activas para este paciente
+                const totalCitas = yield cita_medica_1.default.count({
+                    where: {
+                        rut_paciente: rut_paciente,
+                        estado: {
+                            [sequelize_1.Op.or]: ['en_curso', 'pagado', 'terminado']
+                        },
+                        estado_actividad: 'activo' // Solo considerar citas activas
+                    }
+                });
+                // Obtener las citas activas con paginación y detalles de médico y paciente
+                const citas = yield cita_medica_1.default.findAll({
+                    where: {
+                        rut_paciente: rut_paciente,
+                        estado: {
+                            [sequelize_1.Op.or]: ['en_curso', 'pagado', 'terminado']
+                        },
+                        estado_actividad: 'activo' // Solo considerar citas activas
+                    },
+                    include: [
+                        {
+                            model: usuario_1.default,
+                            as: 'paciente',
+                            attributes: ['nombre', 'apellidos']
+                        },
+                        {
+                            model: medico_1.default,
+                            as: 'medico',
+                            attributes: ['nombre', 'apellidos']
+                        }
+                    ],
+                    attributes: { exclude: ['rut_paciente', 'rut_medico'] },
+                    offset: desde,
+                    limit: limite
+                });
+                if (!citas || citas.length === 0) {
+                    return res.status(404).json({
+                        ok: false,
+                        msg: 'No se encontraron citas activas para este paciente',
+                    });
+                }
+                res.json({
+                    ok: true,
+                    citas,
+                    total: totalCitas
+                });
+            }
+            catch (error) {
+                console.log(error);
+                res.status(500).json({
+                    ok: false,
+                    msg: 'Error interno del servidor',
+                });
+            }
+        });
         this.getCitaFactura = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const idCita = parseInt(req.params.idCita);
             if (!idCita) {

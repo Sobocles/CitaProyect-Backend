@@ -121,7 +121,7 @@ export default class Cita {
             where: {
                 rut_medico: rut_medico,
                 estado: {
-                    [Op.or]: ['en_curso', 'pagado']
+                    [Op.or]: ['en_curso', 'pagado','terminado']
                 },
                 estado_actividad: 'activo' // Solo considerar citas activas
             }
@@ -132,7 +132,7 @@ export default class Cita {
             where: {
                 rut_medico: rut_medico,
                 estado: {
-                    [Op.or]: ['en_curso', 'pagado']
+                    [Op.or]: ['en_curso', 'pagado','terminado']
                 },
                 estado_actividad: 'activo' // Solo considerar citas activas
             },
@@ -237,6 +237,71 @@ export default class Cita {
 };
 
 */
+
+public getCitasPaciente = async (req: Request, res: Response) => {
+    const { rut_paciente } = req.params;
+    console.log('aqui esta el rut',rut_paciente);
+    const desde = Number(req.query.desde) || 0;
+    const limite = Number(req.query.limite) || 5;
+
+    try {
+        // Contar total de citas activas para este paciente
+        const totalCitas = await CitaMedica.count({
+            where: {
+                rut_paciente: rut_paciente,
+                estado: {
+                    [Op.or]: ['en_curso', 'pagado', 'terminado']
+                },
+                estado_actividad: 'activo' // Solo considerar citas activas
+            }
+        });
+
+        // Obtener las citas activas con paginación y detalles de médico y paciente
+        const citas = await CitaMedica.findAll({
+            where: {
+                rut_paciente: rut_paciente,
+                estado: {
+                    [Op.or]: ['en_curso', 'pagado', 'terminado']
+                },
+                estado_actividad: 'activo' // Solo considerar citas activas
+            },
+            include: [
+                {
+                    model: Usuario,
+                    as: 'paciente',
+                    attributes: ['nombre', 'apellidos']
+                },
+                {
+                    model: Medico,
+                    as: 'medico',
+                    attributes: ['nombre', 'apellidos']
+                }
+            ],
+            attributes: { exclude: ['rut_paciente', 'rut_medico'] },
+            offset: desde,
+            limit: limite
+        });
+
+        if (!citas || citas.length === 0) {
+            return res.status(404).json({
+                ok: false,
+                msg: 'No se encontraron citas activas para este paciente',
+            });
+        }
+
+        res.json({
+            ok: true,
+            citas,
+            total: totalCitas
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            ok: false,
+            msg: 'Error interno del servidor',
+        });
+    }
+};
 
 
 

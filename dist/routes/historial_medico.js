@@ -14,6 +14,12 @@ router.get('/', [
 router.get('/:id', [
     validar_campos_1.default.instance.validarCampos
 ], historial_medico_1.default.instance.getHistorial);
+router.get('/porIdHistorial/:id', [
+    validar_campos_1.default.instance.validarCampos
+], historial_medico_1.default.instance.getHistorialPorId);
+router.get('/medico/:id', [
+    validar_campos_1.default.instance.validarCampos
+], historial_medico_1.default.instance.getHistorialMedico);
 router.post('/', [
     (0, express_validator_1.check)('diagnostico', 'El diagnóstico es obligatorio').notEmpty(),
     (0, express_validator_1.check)('medicamento', 'El medicamento es obligatorio').notEmpty(),

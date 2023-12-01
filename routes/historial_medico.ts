@@ -19,6 +19,16 @@ router.get('/:id', [
     validarCampos.instance.validarCampos
 ], Historial_Medico.instance.getHistorial);
 
+router.get('/porIdHistorial/:id', [
+  
+  validarCampos.instance.validarCampos
+], Historial_Medico.instance.getHistorialPorId);
+
+router.get('/medico/:id', [
+  
+  validarCampos.instance.validarCampos
+], Historial_Medico.instance.getHistorialMedico);
+
 
 router.post(
     '/',

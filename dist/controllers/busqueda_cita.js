@@ -36,18 +36,17 @@ function numberToDay(dayNumber) {
 // Controlador principal:
 const buscarmedico = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { especialidad, fecha } = req.body;
-    console.log(especialidad, fecha);
+    console.log('Especialidad buscada:', especialidad);
     console.log('fecha que llega como parametro', fecha);
-    // Convertimos la fecha de entrada a un objeto Date de JavaScript
-    const fechaIngresada = new Date(fecha + 'T00:00:00Z'); // Asegúrate de que se compare al comienzo del día en UTC.
-    console.log('fecha ingresada', fechaIngresada);
-    // Obtenemos la fecha actual y la ajustamos a medianoche en UTC para la comparación.
+    const fechaIngresada = new Date(fecha + 'T00:00:00Z');
     const fechaActual = new Date();
     fechaActual.setUTCHours(0, 0, 0, 0);
-    // Verificamos si la fecha ingresada es anterior o igual a la fecha actual.
     const [anio, mes, dia] = fecha.split('-');
+    console.log('Fecha ingresada como string:', fecha);
     const fechaUTC = new Date(Date.UTC(Number(anio), Number(mes) - 1, Number(dia)));
+    console.log('Fecha convertida a objeto Date:', fechaUTC);
     const diaSemana = numberToDay(fechaUTC.getUTCDay());
+    console.log('Día de la semana calculado:', diaSemana);
     let bloquesTotales = [];
     try {
         let tipoCitaEncontrado;
@@ -57,6 +56,7 @@ const buscarmedico = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         else {
             tipoCitaEncontrado = yield buscarTipoCita(especialidad);
         }
+        console.log('Tipo de cita encontrado:', tipoCitaEncontrado);
         if (!tipoCitaEncontrado) {
             return res.status(400).json({
                 ok: false,
@@ -101,48 +101,48 @@ function buscarTipoCita(especialidad_medica) {
 exports.buscarTipoCita = buscarTipoCita;
 function buscarHorarioMedico(tipoCita, diaSemana) {
     return __awaiter(this, void 0, void 0, function* () {
+        console.log('Buscando horario para:', tipoCita, diaSemana);
         let whereClause = { diaSemana: diaSemana };
-        if (tipoCita.tipo_cita === 'Consulta Especialidad') {
-            const medicosConEspecialidad = yield medico_1.default.findAll({
-                where: {
-                    especialidad_medica: tipoCita.especialidad_medica,
-                    estado: 'activo' // Filtrar solo los médicos activos
-                }
-            });
-            if (medicosConEspecialidad.length === 0) {
-                return [];
+        console.log('Cláusula WHERE para la consulta:', whereClause);
+        const medicosConEspecialidad = yield medico_1.default.findAll({
+            where: {
+                especialidad_medica: tipoCita.especialidad_medica,
+                estado: 'activo' // Filtrar solo los médicos activos
             }
-            const horariosDeTodosLosMedicos = [];
-            for (const medico of medicosConEspecialidad) {
-                const horariosMedico = yield horario_medico_1.default.findAll({
-                    where: {
-                        diaSemana: diaSemana,
-                        rut_medico: medico.rut
-                    },
-                    attributes: ['rut_medico', 'horaInicio', 'horaFinalizacion', 'inicio_colacion', 'fin_colacion'],
-                    include: [
-                        {
-                            model: medico_1.default,
-                            as: 'medico',
-                            attributes: ['rut', 'nombre', 'apellidos', 'especialidad_medica'],
-                            where: {
-                                estado: 'activo' // Incluir solo médicos activos
-                            }
-                        },
-                    ],
-                });
-                horariosDeTodosLosMedicos.push(...horariosMedico);
-            }
-            return horariosDeTodosLosMedicos.map((row) => ({
-                dia: diaSemana,
-                rut: row.rut_medico,
-                horainicio: row.horaInicio,
-                horafinalizacion: row.horaFinalizacion,
-                inicio_colacion: row.inicio_colacion,
-                fin_colacion: row.fin_colacion,
-                especialidad_medica: tipoCita.tipo_cita === 'Consulta general' ? row.medico.especialidad_medica : row.medico.especialidad_medica
-            }));
+        });
+        if (medicosConEspecialidad.length === 0) {
+            return [];
         }
+        const horariosDeTodosLosMedicos = [];
+        for (const medico of medicosConEspecialidad) {
+            const horariosMedico = yield horario_medico_1.default.findAll({
+                where: {
+                    diaSemana: diaSemana,
+                    rut_medico: medico.rut
+                },
+                attributes: ['rut_medico', 'horaInicio', 'horaFinalizacion', 'inicio_colacion', 'fin_colacion'],
+                include: [
+                    {
+                        model: medico_1.default,
+                        as: 'medico',
+                        attributes: ['rut', 'nombre', 'apellidos', 'especialidad_medica'],
+                        where: {
+                            estado: 'activo' // Incluir solo médicos activos
+                        }
+                    },
+                ],
+            });
+            horariosDeTodosLosMedicos.push(...horariosMedico);
+        }
+        return horariosDeTodosLosMedicos.map((row) => ({
+            dia: diaSemana,
+            rut: row.rut_medico,
+            horainicio: row.horaInicio,
+            horafinalizacion: row.horaFinalizacion,
+            inicio_colacion: row.inicio_colacion,
+            fin_colacion: row.fin_colacion,
+            especialidad_medica: tipoCita.tipo_cita === 'Consulta general' ? row.medico.especialidad_medica : row.medico.especialidad_medica
+        }));
         return [];
     });
 }
@@ -153,11 +153,12 @@ function buscarBloquesDisponibles(resultadoFormateado, duracionCita, fechaFormat
             throw new Error('Datos del horario del médico no proporcionados correctamente.');
         }
         const medicoRut = resultadoFormateado.rut;
+        console.log('aqui esta el rut del medico', medicoRut);
         // Obtener el nombre del médico utilizando el medicoRut
         const medicoData = yield medico_1.default.findOne({
             where: {
                 rut: medicoRut,
-                estado: 'activo' // Asegúrate de buscar solo médicos activos
+                estado: 'activo'
             }
         });
         if (!medicoData)

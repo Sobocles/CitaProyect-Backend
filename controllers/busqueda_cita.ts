@@ -28,24 +28,28 @@ function numberToDay(dayNumber: number): string {
 // Controlador principal:
 export const buscarmedico = async (req: Request, res: Response) => {
     const { especialidad, fecha } = req.body;
-    console.log(especialidad, fecha);
+    console.log('Especialidad buscada:', especialidad);
 
     console.log('fecha que llega como parametro',fecha);
 
-    // Convertimos la fecha de entrada a un objeto Date de JavaScript
-    const fechaIngresada = new Date(fecha + 'T00:00:00Z'); // Asegúrate de que se compare al comienzo del día en UTC.
-    console.log('fecha ingresada',fechaIngresada);
-    // Obtenemos la fecha actual y la ajustamos a medianoche en UTC para la comparación.
+   
+    const fechaIngresada = new Date(fecha + 'T00:00:00Z'); 
+ 
+ 
     const fechaActual = new Date();
     fechaActual.setUTCHours(0, 0, 0, 0);
 
-    // Verificamos si la fecha ingresada es anterior o igual a la fecha actual.
+   
 
 
 
     const [anio, mes, dia] = fecha.split('-');
-    const fechaUTC = new Date(Date.UTC(Number(anio), Number(mes) - 1, Number(dia)));
-    const diaSemana = numberToDay(fechaUTC.getUTCDay());
+    console.log('Fecha ingresada como string:', fecha);
+const fechaUTC = new Date(Date.UTC(Number(anio), Number(mes) - 1, Number(dia)));
+console.log('Fecha convertida a objeto Date:', fechaUTC);
+const diaSemana = numberToDay(fechaUTC.getUTCDay());
+console.log('Día de la semana calculado:', diaSemana);
+
     let bloquesTotales: any[] = [];
 
     try {
@@ -56,7 +60,7 @@ export const buscarmedico = async (req: Request, res: Response) => {
         } else {
             tipoCitaEncontrado = await buscarTipoCita(especialidad);
         }
-
+        console.log('Tipo de cita encontrado:', tipoCitaEncontrado);
         if (!tipoCitaEncontrado) {
             return res.status(400).json({
                 ok: false,
@@ -106,15 +110,20 @@ interface WhereClause {
 }
 
 export async function buscarHorarioMedico(tipoCita: any, diaSemana: string) {
+    console.log('Buscando horario para:', tipoCita, diaSemana);
     let whereClause: WhereClause = { diaSemana: diaSemana };
+    console.log('Cláusula WHERE para la consulta:', whereClause);
 
-    if (tipoCita.tipo_cita === 'Consulta Especialidad') {
+
+  
         const medicosConEspecialidad = await Medico.findAll({
+        
             where: {
                 especialidad_medica: tipoCita.especialidad_medica,
                 estado: 'activo'  // Filtrar solo los médicos activos
             }
         });
+        
         
         if (medicosConEspecialidad.length === 0) {
             return [];
@@ -143,6 +152,7 @@ export async function buscarHorarioMedico(tipoCita: any, diaSemana: string) {
             horariosDeTodosLosMedicos.push(...horariosMedico);
         }
         
+        
         return horariosDeTodosLosMedicos.map((row: any) => ({
             dia: diaSemana,
             rut: row.rut_medico,
@@ -152,7 +162,7 @@ export async function buscarHorarioMedico(tipoCita: any, diaSemana: string) {
             fin_colacion: row.fin_colacion,       // Añadir estos datos
             especialidad_medica: tipoCita.tipo_cita === 'Consulta general' ? row.medico.especialidad_medica : row.medico.especialidad_medica
         }));
-    }
+    
     return [];
 }
 
@@ -165,12 +175,13 @@ export async function buscarBloquesDisponibles(resultadoFormateado: any, duracio
     }
 
     const medicoRut = resultadoFormateado.rut;
+    console.log('aqui esta el rut del medico',medicoRut);
     
     // Obtener el nombre del médico utilizando el medicoRut
     const medicoData = await Medico.findOne({ 
         where: { 
             rut: medicoRut,
-            estado: 'activo' // Asegúrate de buscar solo médicos activos
+            estado: 'activo' 
         } 
     });
     

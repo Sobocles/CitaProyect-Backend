@@ -16,6 +16,9 @@ router.get('/:idCita', [
 router.get('/medico/:rut_medico', [
     validar_campos_1.default.instance.validarCampos
 ], cita_medica_1.default.instance.getCitasMedico);
+router.get('/usuario/:rut_paciente', [
+    validar_campos_1.default.instance.validarCampos
+], cita_medica_1.default.instance.getCitasPaciente);
 router.post('/', [
     validar_campos_1.default.instance.validarCampos
 ], cita_medica_1.default.instance.crearCita);

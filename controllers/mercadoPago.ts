@@ -46,9 +46,9 @@ export const createOrder = async (req: Request, res: Response) => {
     
    
       //.\ngrok.exe http 8000
-      notification_url: 'https://2a66-2800-150-14e-fe7-ec86-e8db-1f0a-d24d.ngrok.io/api/mercadoPago/webhook'
+      notification_url: 'https://36a2-2800-150-14e-fe7-f830-a2d5-e93b-67f5.ngrok.io/api/mercadoPago/webhook'
     };
-    console.log('aqui esta la preferencia',preference)
+  
     
     try {
       const result = await mercadopago.preferences.create(preference);

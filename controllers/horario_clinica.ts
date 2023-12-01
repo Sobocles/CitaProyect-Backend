@@ -199,7 +199,7 @@ export default class Horario_clinica {
 
        
         getInfoClinica = async (req: Request, res: Response) => {
-          console.log('OLLLLLAAAAA');
+         
           try {
             
       

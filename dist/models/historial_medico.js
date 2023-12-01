@@ -3,7 +3,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// Importa las dependencias necesarias
 const sequelize_1 = require("sequelize");
 const connection_1 = __importDefault(require("../db/connection")); // Asegúrate de importar tu conexión a la base de datos
 const usuario_1 = __importDefault(require("../models/usuario")); // Importa el modelo de paciente
@@ -53,11 +52,15 @@ HistorialMedico.init({
             model: medico_1.default,
             key: 'id'
         }
-    }
+    },
+    estado: {
+        type: sequelize_1.DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'activo' // Valor por defecto es 'activo'
+    },
 }, {
     sequelize: connection_1.default,
     modelName: 'HistorialMedico', // Nombre de la tabla en la base de datos
 });
 exports.default = HistorialMedico;
-// Define la relación con el modelo de paciente
 //# sourceMappingURL=historial_medico.js.map

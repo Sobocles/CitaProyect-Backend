@@ -14,11 +14,13 @@ const getMenuFrontEnd = (rol = 'USER_ROLE') => {
     ];
     const pacienteMenu = [
         { label: 'Agendar Cita', url: '/Agendar-cita' },
+        { label: 'Revisar citas medicas', url: '/ver-cita-paciente' },
         { label: 'Revisar historial medico', url: '/historial' },
         { label: 'Cambiar contraseña', url: '/cambiar-password' }
     ];
     const medicoMenu = [
         { label: 'Redactar hitorial medico', url: '/agregar-historial' },
+        { label: 'Gestinar hitoriales medicos', url: '/gestionar-historiales' },
         { label: 'Citas medicas del medico', url: '/ver-citas' },
         { label: 'Cambiar contraseña', url: '/cambiar-password-medicos' },
     ];

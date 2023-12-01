@@ -25,6 +25,11 @@ router.get('/medico/:rut_medico', [
     validarCampos.instance.validarCampos
 ], CitaMedica.instance.getCitasMedico );
 
+router.get('/usuario/:rut_paciente', [
+  
+    validarCampos.instance.validarCampos
+], CitaMedica.instance.getCitasPaciente );
+
 
 router.post('/', [
     

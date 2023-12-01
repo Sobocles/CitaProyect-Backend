@@ -1,4 +1,4 @@
-import Usuario from '../models/usuario'; // Asegúrate de importar el modelo correcto
+import Usuario from '../models/usuario'; 
 import bcrypt from 'bcrypt';
 import { getMenuFrontEnd } from '../helpers/menu-frontend';
 import { Request, Response } from "express";
@@ -30,7 +30,7 @@ export default class Usuarios {
     let userOrMedico: Usuario | Medico | null;
 
     try {
-        // Intenta encontrar un Usuario con el email
+       
         userOrMedico = await Usuario.findOne({ where: { email } });
 
         // Verificar si el usuario está inactivo
@@ -340,8 +340,8 @@ public async enviarEmail(emailRecipient:string, username:string, newPassword:str
   let transporter = nodemailer.createTransport({
       service: 'gmail', // Usando Gmail como el servicio
       auth: {
-          user: 'smoralespincheira@gmail.com', // Cambia esto por tu correo
-          pass: 'puppetmaster.9' // Cambia esto por tu contraseña
+          user: 'smoralespincheira@gmail.com', 
+          pass: 'puppetmaster.9' 
       }
   });
 
