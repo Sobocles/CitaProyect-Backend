@@ -49,7 +49,7 @@ CitaMedica.init({
         allowNull: false,
     },
     estado: {
-        type: sequelize_1.DataTypes.ENUM('en_curso', 'terminado', 'no_asistio', 'pagado', 'no_pagado'),
+        type: sequelize_1.DataTypes.ENUM('en_curso', 'terminado', 'no_asistio', 'pagado', 'no_pagado', 'cancelada'),
         allowNull: false,
         defaultValue: 'en_curso',
     },

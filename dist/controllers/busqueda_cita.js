@@ -89,7 +89,7 @@ function buscarTipoCita(especialidad_medica) {
         const tipoCita = yield tipo_cita_1.default.findOne({
             where: {
                 especialidad_medica,
-                estado: 'activo' // Asegúrate de buscar solo las citas activas
+                estado: 'activo'
             }
         });
         if (!tipoCita) {
@@ -191,10 +191,26 @@ function buscarBloquesDisponibles(resultadoFormateado, duracionCita, fechaFormat
                 fecha: {
                     [sequelize_1.Op.eq]: new Date(fechaFormateada)
                 },
-                estado: { [sequelize_1.Op.ne]: 'no_pagado' },
+                [sequelize_1.Op.and]: [
+                    { estado: { [sequelize_1.Op.ne]: 'cancelada' } },
+                    { estado: { [sequelize_1.Op.ne]: 'no_pagado' } } // Excluye citas no pagadas
+                ],
                 estado_actividad: 'activo' // Incluir solo citas con estado_actividad 'activo'
             }
         });
+        /*
+            const citasProgramadas = await CitaMedica.findAll({
+            where: {
+                rut_medico: medicoRut,
+                fecha: {
+                    [Op.eq]: new Date(fechaFormateada)
+                },
+                estado: { [Op.ne]: 'no_pagado' }, // Excluye las citas con estado 'no_pagado'
+                estado_actividad: 'activo' // Incluir solo citas con estado_actividad 'activo'
+            }
+        });
+    
+        */
         const bloquesOcupados = citasProgramadas.map(cita => ({
             hora_inicio: cita.hora_inicio,
             hora_fin: cita.hora_fin

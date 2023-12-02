@@ -334,7 +334,7 @@ getCitaFactura = async (req: Request, res: Response) => {
                     as: 'paciente',
                     attributes: ['nombre', 'apellidos', 'email']  // Solo incluir los atributos necesarios
                 },
-                // Puedes incluir más asociaciones si son necesarias
+               
             ]
         });
     
@@ -565,7 +565,7 @@ getCitaFactura = async (req: Request, res: Response) => {
                     idTipoCita,
                 });
     
-                // Sequelize automáticamente añade el ID al objeto 'cita'
+              
                
                 console.log('Cita creada con ID:', cita.idCita);
                 return res.status(201).json({

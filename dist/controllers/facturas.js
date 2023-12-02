@@ -20,7 +20,6 @@ const medico_1 = __importDefault(require("../models/medico"));
 function eliminarFactura(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const { id } = req.params;
-        console.log('AQUIII ESTA EL ID', id);
         try {
             const factura = yield factura_1.default.findByPk(id);
             if (!factura) {
@@ -124,7 +123,6 @@ function obtenerFacturaPorId(req, res) {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
     return __awaiter(this, void 0, void 0, function* () {
         const id = req.params.id;
-        console.log('AQUI ESTA LE ID DE LA FACTURA', id);
         const idfactura = parseInt(id);
         try {
             const factura = yield factura_1.default.findByPk(idfactura, {

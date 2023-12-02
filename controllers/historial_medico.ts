@@ -4,6 +4,8 @@ import HistorialMedico from '../models/historial_medico';
 import bcrypt from 'bcrypt';
 import Medico from '../models/medico';
 import Usuario from '../models/usuario';
+import CitaMedica from '../models/cita_medica';
+import { Op } from 'sequelize';
 
 
 
@@ -132,12 +134,66 @@ export default class Historial_Medico {
     
     
       
-      
-
+    CrearHistorial = async(req: Request, res: Response) => {
+        const historialData = req.body;
+        console.log(historialData);
+    
+        try {
+            // Verifica si ya existe un historial médico con el mismo ID
+            const historialExistente = await HistorialMedico.findByPk(historialData.id_historial_medico);
+            if (historialExistente) {
+                return res.status(400).json({
+                    ok: false,
+                    msg: 'Ya existe un historial médico con el mismo ID',
+                });
+            }
+    
+            // Encuentra la cita médica relacionada
+            const citaRelacionada = await CitaMedica.findOne({
+                where: {
+                    rut_paciente: historialData.rut_paciente,
+                    rut_medico: historialData.rut_medico,
+                 
+                    estado: {
+                        [Op.or]: ['en_curso', 'pagado']
+                    }
+                }
+            });
+    
+            if (citaRelacionada) {
+                // Cambia el estado de la cita a 'terminado'
+                citaRelacionada.estado = 'terminado';
+                await citaRelacionada.save();
+            } else {
+                return res.status(404).json({
+                    ok: false,
+                    msg: 'No se encontró una cita médica relacionada y activa para la fecha y RUTs proporcionados',
+                });
+            }
+    
+            // Crea un nuevo historial médico
+            const nuevoHistorial = await HistorialMedico.create(historialData);
+    
+            res.json({
+                ok: true,
+                historial: nuevoHistorial
+            });
+    
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({
+                ok: false,
+                msg: 'Error inesperado... revisar logs',
+            });
+        }
+    };
         
 
+        
+/*
         CrearHistorial= async( req: Request, res: Response ) => {
             const historialData = req.body;
+            console.log('Aqui esta el historialdata',historialData);
 
             try {
               // Verifica si ya existe un médico con el mismo ID
@@ -166,7 +222,7 @@ export default class Historial_Medico {
             }
           };
       
-
+*/
 
 
           public putHistorial = async (req: Request, res: Response) => {

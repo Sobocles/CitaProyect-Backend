@@ -387,7 +387,7 @@ public async revalidarToken(req: Request | any, res: Response) {
             return res.status(404).json({ ok: false, msg: 'Usuario o médico no encontrado' });
         }
 
-        // Obtén la información de la clínica
+        // Obténer la información de la clínica
         const infoClinica = await InfoClinica.findOne();
 
         // Genera un nuevo token y devuelve la información del usuario o médico junto con la info de la clínica

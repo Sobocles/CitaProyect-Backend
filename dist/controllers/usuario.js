@@ -142,7 +142,7 @@ exports.getAllUsuarios = getAllUsuarios;
 const getPacientesConCitasPagadasYEnCurso = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { rut_medico } = req.params;
     try {
-        // Obtén los detalles de los pacientes con citas en estado 'en_curso' y 'pagado' con un médico específico
+        // Obténer los detalles de los pacientes con citas en estado 'en_curso' y 'pagado' con un médico específico
         const pacientesConCitasPagadas = yield cita_medica_1.default.findAll({
             where: {
                 rut_medico,

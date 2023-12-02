@@ -385,7 +385,7 @@ class Usuarios {
                 if (!userOrMedico) {
                     return res.status(404).json({ ok: false, msg: 'Usuario o médico no encontrado' });
                 }
-                // Obtén la información de la clínica
+                // Obténer la información de la clínica
                 const infoClinica = yield info_clinica_1.default.findOne();
                 // Genera un nuevo token y devuelve la información del usuario o médico junto con la info de la clínica
                 const newToken = yield jwt_1.default.instance.generarJWT(userOrMedico.rut, userOrMedico.nombre, userOrMedico.apellidos, rol);

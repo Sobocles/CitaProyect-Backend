@@ -33,7 +33,7 @@ export default class HorarioMedico {
 
 // Suponiendo que esta es la función para obtener los horarios médicos
 getHorariosMedicos = async (req: Request, res: Response) => {
-  console.log('Obteniendo horarios médicos...');
+  
   try {
       const desde = Number(req.query.desde) || 0;
 

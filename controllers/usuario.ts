@@ -145,7 +145,7 @@ export const getPacientesConCitasPagadasYEnCurso = async (req: Request, res: Res
   
 
   try {
-      // Obtén los detalles de los pacientes con citas en estado 'en_curso' y 'pagado' con un médico específico
+      // Obténer los detalles de los pacientes con citas en estado 'en_curso' y 'pagado' con un médico específico
       const pacientesConCitasPagadas = await CitaMedica.findAll({
           where: {
               rut_medico, // Filtra por el médico específico

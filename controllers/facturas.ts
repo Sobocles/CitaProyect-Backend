@@ -10,7 +10,7 @@ import Medico from '../models/medico';
 export async function eliminarFactura(req: Request, res: Response) {
 
     const { id } = req.params;
-    console.log('AQUIII ESTA EL ID',id);
+  
     try {
         const factura = await Factura.findByPk(id);
 
@@ -113,7 +113,7 @@ export async function getAllFacturas(req: Request, res: Response) {
 
 export async function obtenerFacturaPorId(req: Request, res: Response) {
     const id = req.params.id;
-    console.log('AQUI ESTA LE ID DE LA FACTURA', id);
+  
     const idfactura = parseInt(id);
 
     try {

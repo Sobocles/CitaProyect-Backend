@@ -82,7 +82,7 @@ CitaMedica.init(
       allowNull: false,
     },
     estado: {
-      type: DataTypes.ENUM('en_curso', 'terminado', 'no_asistio','pagado','no_pagado'),
+      type: DataTypes.ENUM('en_curso', 'terminado', 'no_asistio','pagado','no_pagado','cancelada'),
       allowNull: false,
       defaultValue: 'en_curso',
     },

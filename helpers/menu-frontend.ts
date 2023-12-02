@@ -13,6 +13,7 @@ export const getMenuFrontEnd = (rol = 'USER_ROLE') => {
   ];
 
   const pacienteMenu = [
+    { label: 'Inicio', url: '/inicio-paciente' },
     { label: 'Agendar Cita', url: '/Agendar-cita' },
     { label: 'Revisar citas medicas', url: '/ver-cita-paciente' },
     { label: 'Revisar historial medico', url: '/historial' },

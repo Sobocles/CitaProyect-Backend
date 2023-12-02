@@ -47,7 +47,9 @@ const createOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             pending: "http://localhost:8000/api/mercadoPago/pending"
         },
         //.\ngrok.exe http 8000
-        notification_url: 'https://36a2-2800-150-14e-fe7-f830-a2d5-e93b-67f5.ngrok.io/api/mercadoPago/webhook'
+        //.\ngrok http --region=sa 8000
+        //.\ngrok http --region=us 8000
+        notification_url: 'https://bd26-190-160-185-252.ngrok.io/api/mercadoPago/webhook'
     };
     try {
         const result = yield mercadopago_1.default.preferences.create(preference);

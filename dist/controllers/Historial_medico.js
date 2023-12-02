@@ -15,6 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const historial_medico_1 = __importDefault(require("../models/historial_medico"));
 const medico_1 = __importDefault(require("../models/medico"));
 const usuario_1 = __importDefault(require("../models/usuario"));
+const cita_medica_1 = __importDefault(require("../models/cita_medica"));
+const sequelize_1 = require("sequelize");
 class Historial_Medico {
     constructor() {
         this.getHistoriales = (req, res) => __awaiter(this, void 0, void 0, function* () {
@@ -123,30 +125,85 @@ class Historial_Medico {
         });
         this.CrearHistorial = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const historialData = req.body;
+            console.log(historialData);
             try {
-                // Verifica si ya existe un médico con el mismo ID
-                const historialExistente = yield historial_medico_1.default.findByPk(historialData.id);
+                // Verifica si ya existe un historial médico con el mismo ID
+                const historialExistente = yield historial_medico_1.default.findByPk(historialData.id_historial_medico);
                 if (historialExistente) {
                     return res.status(400).json({
                         ok: false,
-                        msg: 'Ya existe un historial con el mismo ID',
+                        msg: 'Ya existe un historial médico con el mismo ID',
                     });
                 }
-                // Crea un nuevo médico
+                // Encuentra la cita médica relacionada
+                const citaRelacionada = yield cita_medica_1.default.findOne({
+                    where: {
+                        rut_paciente: historialData.rut_paciente,
+                        rut_medico: historialData.rut_medico,
+                        estado: {
+                            [sequelize_1.Op.or]: ['en_curso', 'pagado']
+                        }
+                    }
+                });
+                if (citaRelacionada) {
+                    // Cambia el estado de la cita a 'terminado'
+                    citaRelacionada.estado = 'terminado';
+                    yield citaRelacionada.save();
+                }
+                else {
+                    return res.status(404).json({
+                        ok: false,
+                        msg: 'No se encontró una cita médica relacionada y activa para la fecha y RUTs proporcionados',
+                    });
+                }
+                // Crea un nuevo historial médico
                 const nuevoHistorial = yield historial_medico_1.default.create(historialData);
                 res.json({
                     ok: true,
-                    historial: nuevoHistorial,
+                    historial: nuevoHistorial
                 });
             }
             catch (error) {
                 console.log(error);
                 res.status(500).json({
                     ok: false,
-                    msg: 'Hable con el administrador',
+                    msg: 'Error inesperado... revisar logs',
                 });
             }
         });
+        /*
+                CrearHistorial= async( req: Request, res: Response ) => {
+                    const historialData = req.body;
+                    console.log('Aqui esta el historialdata',historialData);
+        
+                    try {
+                      // Verifica si ya existe un médico con el mismo ID
+                      const historialExistente = await HistorialMedico.findByPk(historialData.id);
+                  
+                      if (historialExistente) {
+                        return res.status(400).json({
+                          ok: false,
+                          msg: 'Ya existe un historial con el mismo ID',
+                        });
+                      }
+                  
+                      // Crea un nuevo médico
+                      const nuevoHistorial = await HistorialMedico.create(historialData);
+                  
+                      res.json({
+                        ok: true,
+                        historial: nuevoHistorial,
+                      });
+                    } catch (error) {
+                      console.log(error);
+                      res.status(500).json({
+                        ok: false,
+                        msg: 'Hable con el administrador',
+                      });
+                    }
+                  };
+              
+        */
         this.putHistorial = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id } = req.params;

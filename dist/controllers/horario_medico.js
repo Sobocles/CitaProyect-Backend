@@ -34,7 +34,6 @@ class HorarioMedico {
         */
         // Suponiendo que esta es la función para obtener los horarios médicos
         this.getHorariosMedicos = (req, res) => __awaiter(this, void 0, void 0, function* () {
-            console.log('Obteniendo horarios médicos...');
             try {
                 const desde = Number(req.query.desde) || 0;
                 // Obtén el total de horarios de médicos activos
