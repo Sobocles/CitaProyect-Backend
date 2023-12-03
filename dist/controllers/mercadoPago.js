@@ -49,7 +49,7 @@ const createOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         //.\ngrok.exe http 8000
         //.\ngrok http --region=sa 8000
         //.\ngrok http --region=us 8000
-        notification_url: 'https://bd26-190-160-185-252.ngrok.io/api/mercadoPago/webhook'
+        notification_url: 'https://7404-2800-150-14e-fe7-2dac-7ad0-6a6f-d86b.ngrok.io/api/mercadoPago/webhook'
     };
     try {
         const result = yield mercadopago_1.default.preferences.create(preference);

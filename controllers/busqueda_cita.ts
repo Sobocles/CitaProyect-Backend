@@ -13,6 +13,10 @@ function timeToMinutes(time: string): number {
     return hours * 60 + minutes;
 }
 
+const ahora = new Date();
+const minutosActuales = ahora.getHours() * 60 + ahora.getMinutes();
+
+
 function minutesToTime(minutes: number): string {
     const hh = Math.floor(minutes / 60).toString().padStart(2, '0');
     const mm = (minutes % 60).toString().padStart(2, '0');
@@ -55,11 +59,9 @@ console.log('Día de la semana calculado:', diaSemana);
     try {
         let tipoCitaEncontrado: TipoCita | null;
 
-        if (especialidad === 'Consulta general') {
-            tipoCitaEncontrado = await TipoCita.findOne({ where: { tipo_cita: especialidad } });
-        } else {
+       
             tipoCitaEncontrado = await buscarTipoCita(especialidad);
-        }
+        
         console.log('Tipo de cita encontrado:', tipoCitaEncontrado);
         if (!tipoCitaEncontrado) {
             return res.status(400).json({
@@ -174,6 +176,8 @@ export async function buscarBloquesDisponibles(resultadoFormateado: any, duracio
         throw new Error('Datos del horario del médico no proporcionados correctamente.');
     }
 
+    
+
     const medicoRut = resultadoFormateado.rut;
     console.log('aqui esta el rut del medico',medicoRut);
     
@@ -194,7 +198,7 @@ export async function buscarBloquesDisponibles(resultadoFormateado: any, duracio
     const finColacion = resultadoFormateado.fin_colacion ? timeToMinutes(resultadoFormateado.fin_colacion) : null;
     const intervalo = duracionCita;
 
-    const bloquesPosibles = [];
+    let bloquesPosibles = [];
     for (let i = horarioInicio; i + intervalo <= horarioFin; i += intervalo) {
         // Verifica si el bloque actual está dentro del intervalo de colación
         if (!(inicioColacion !== null && finColacion !== null && i < finColacion && i + intervalo > inicioColacion)) {
@@ -209,6 +213,17 @@ export async function buscarBloquesDisponibles(resultadoFormateado: any, duracio
                 fecha: fechaFormateada
             });
         }
+    }
+
+    const ahora = new Date();
+    const minutosActuales = ahora.getHours() * 60 + ahora.getMinutes();
+    const fechaActualFormateada = ahora.toISOString().split('T')[0];  // Formato: 'YYYY-MM-DD'
+
+    // Filtrar los bloques si la fecha es la actual
+    if (fechaFormateada === fechaActualFormateada) {
+        bloquesPosibles = bloquesPosibles.filter(bloque => 
+            timeToMinutes(bloque.hora_inicio) >= minutosActuales
+        );
     }
 
     const citasProgramadas = await CitaMedica.findAll({
