@@ -11,6 +11,7 @@ const router = (0, express_1.Router)();
 router.get('/', usuario_1.getUsuarios);
 router.get('/all', usuario_1.getAllUsuarios);
 router.get('/allCurso/:rut_medico', usuario_1.getPacientesConCitasPagadasYEnCurso);
+router.get('/allCursoTerminado/:rut_medico', usuario_1.getPacientesConCitasPagadasYEnCursoYterminado);
 router.get('/:id', usuario_1.getUsuario);
 router.post('/', [
     (0, express_validator_1.check)('nombre', 'El nombre es obligatorio').not().isEmpty(),

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cambiarPassword = exports.deleteUsuario = exports.putUsuario = exports.CrearUsuario = exports.getUsuario = exports.getPacientesConCitasPagadasYEnCurso = exports.getAllUsuarios = exports.getUsuarios = void 0;
+exports.cambiarPassword = exports.deleteUsuario = exports.putUsuario = exports.CrearUsuario = exports.getUsuario = exports.getPacientesConCitasPagadasYEnCursoYterminado = exports.getPacientesConCitasPagadasYEnCurso = exports.getAllUsuarios = exports.getUsuarios = void 0;
 const usuario_1 = __importDefault(require("../models/usuario"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const sequelize_1 = require("sequelize");
@@ -51,33 +51,30 @@ exports.getUsuarios = getUsuarios;
 // Método para obtener a todos los pacientes (esto lo usa para obtener pacientes en el formulario historial medico ppara que escriba el medicco al paciente)
 const getAllUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Obtén los ruts de los pacientes con citas en estados 'en_curso', 'no_asistido' y 'pagado'
-        const rutsPacientesConCitas = yield cita_medica_1.default.findAll({
-            where: {
-                estado: ['en_curso', 'no_asistido', 'pagado'] // Incluye 'pagado' en la lista
-            },
-            attributes: ['rut_paciente'],
-            group: ['rut_paciente']
-        });
-        // Extrae solo los ruts de los pacientes
-        const rutsExcluidos = rutsPacientesConCitas.map(cita => cita.rut_paciente);
-        // Obtener los detalles de todos los pacientes que no tienen citas en esos estados,
-        // que no son administradores y que están activos
+        // Obtener los detalles de todos los pacientes que no son administradores y que están activos
         const usuarios = yield usuario_1.default.findAll({
             where: {
-                rut: {
-                    [sequelize_1.Op.notIn]: rutsExcluidos
-                },
                 rol: {
                     [sequelize_1.Op.ne]: 'ADMIN_ROLE' // Excluye a los usuarios con rol 'ADMIN_ROLE'
                 },
                 estado: 'activo' // Incluye solo usuarios activos
             },
             attributes: {
-                exclude: ['password', 'createdAt', 'updatedAt']
-            }
+                exclude: ['password', 'createdAt', 'updatedAt'] // Excluye estos atributos
+            },
+            // Incluir citas médicas con los estados especificados
+            include: [{
+                    model: cita_medica_1.default,
+                    attributes: ['idCita', 'estado', 'fecha', 'hora_inicio', 'hora_fin'],
+                    where: {
+                        estado: {
+                            [sequelize_1.Op.or]: ['en_curso', 'no_asistido', 'pagado']
+                        }
+                    },
+                    required: false // Incluye usuarios incluso si no tienen citas en esos estados
+                }]
         });
-        // Obtén el total de pacientes que no tienen citas en esos estados y que están activos
+        // Obtén el total de pacientes activos que no son administradores
         const totalPacientes = usuarios.length;
         res.json({
             ok: true,
@@ -91,54 +88,6 @@ const getAllUsuarios = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.getAllUsuarios = getAllUsuarios;
-/*
-  export const getAllUsuarios = async (req: Request, res: Response) => {
-
-
-  try {
-      // Obtén los ruts de los pacientes con citas en estados 'en_curso' o 'no_asistio'
-      const rutsPacientesConCitas = await CitaMedica.findAll({
-          where: {
-              estado: ['en_curso', 'no_asistido']
-          },
-          attributes: ['rut_paciente'],
-          group: ['rut_paciente']
-      });
-
-      // Extrae solo los ruts de los pacientes
-      const rutsExcluidos = rutsPacientesConCitas.map(cita => cita.rut_paciente);
-
-      // Obtén los detalles de todos los pacientes que no tienen citas en esos estados y que no son administradores
-      const usuarios = await Usuario.findAll({
-          where: {
-              rut: {
-                  [Op.notIn]: rutsExcluidos
-              },
-              rol: {
-                  [Op.ne]: 'ADMIN_ROLE' // Excluye a los usuarios con rol 'ADMIN_ROLE'
-              }
-          },
-          attributes: {
-              exclude: ['password', 'createdAt', 'updatedAt']
-          }
-      });
-
-      // Obtén el total de pacientes que no tienen citas en esos estados
-      const totalPacientes = usuarios.length;
-
-      res.json({
-          ok: true,
-          usuarios,
-          total: totalPacientes
-      });
-  } catch (error) {
-      console.error(error);
-      res.status(500).send('Error interno del servidor');
-  }
-};
-
-
-*/
 const getPacientesConCitasPagadasYEnCurso = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { rut_medico } = req.params;
     try {
@@ -146,7 +95,7 @@ const getPacientesConCitasPagadasYEnCurso = (req, res) => __awaiter(void 0, void
         const pacientesConCitasPagadas = yield cita_medica_1.default.findAll({
             where: {
                 rut_medico,
-                estado: ['en_curso', 'pagado'],
+                estado: ['en_curso', 'pagado', 'terminado'],
                 estado_actividad: 'activo' // Solo citas activas
             },
             include: [{
@@ -173,45 +122,40 @@ const getPacientesConCitasPagadasYEnCurso = (req, res) => __awaiter(void 0, void
     }
 });
 exports.getPacientesConCitasPagadasYEnCurso = getPacientesConCitasPagadasYEnCurso;
-/*
-export const getPacientesConCitasPagadasYEnCurso = async (req: Request, res: Response) => {
- 
-  try {
-      // Obtén los detalles de los pacientes con citas en estado 'en_curso' y 'pagado'
-      const pacientesConCitasPagadas = await CitaMedica.findAll({
-          where: {
-            estado: ['en_curso', 'pagado'] // Modificado para incluir 'pagado'
-          },
-          include: [{
-              model: Usuario, // Asumiendo que CitaMedica tiene una relación con Usuario
-              as: 'paciente',
-              where: {
-                  rol: {
-                      [Op.ne]: 'ADMIN_ROLE' // Excluye a los usuarios con rol 'ADMIN_ROLE'
-                  }
-              },
-              attributes: {
-                  exclude: ['password', 'createdAt', 'updatedAt']
-              }
-          }]
-      });
-
-      // Mapea los resultados para obtener solo los datos de los pacientes
-      const usuarios = pacientesConCitasPagadas.map(cita => cita.paciente);
-
-      res.json({
-          ok: true,
-          usuarios,
-          total: usuarios.length
-      });
-  } catch (error) {
-      console.error(error);
-      res.status(500).send('Error interno del servidor');
-  }
-};
-
-
-*/
+const getPacientesConCitasPagadasYEnCursoYterminado = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { rut_medico } = req.params;
+    try {
+        // Obténer los detalles de los pacientes con citas en estado 'en_curso' y 'pagado' con un médico específico
+        const pacientesConCitasPagadas = yield cita_medica_1.default.findAll({
+            where: {
+                rut_medico,
+                estado: ['en_curso', 'pagado', 'terminado'],
+                estado_actividad: 'activo' // Solo citas activas
+            },
+            include: [{
+                    model: usuario_1.default,
+                    as: 'paciente',
+                    where: {
+                        rol: { [sequelize_1.Op.ne]: 'ADMIN_ROLE' },
+                        estado: 'activo' // Solo usuarios activos
+                    },
+                    attributes: { exclude: ['password', 'createdAt', 'updatedAt'] }
+                }]
+        });
+        // Mapea los resultados para obtener solo los datos de los pacientes
+        const usuarios = pacientesConCitasPagadas.map(cita => cita.paciente);
+        res.json({
+            ok: true,
+            usuarios,
+            total: usuarios.length
+        });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).send('Error interno del servidor');
+    }
+});
+exports.getPacientesConCitasPagadasYEnCursoYterminado = getPacientesConCitasPagadasYEnCursoYterminado;
 const getUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id } = req.params;
     const usuario = yield usuario_1.default.findByPk(id);
@@ -281,109 +225,6 @@ const CrearUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.CrearUsuario = CrearUsuario;
-/*
-export const CrearUsuario = async(req: Request, res: Response) => {
-  const { usuario, email, password, nombre, apellidos, telefono } = req.body;
-
-  try {
-    // Verificar si ya existen usuarios en la base de datos
-    const existenUsuarios = await Usuario.count();
-    let rol = 'USER_ROLE'; // Rol por defecto
-
-    // Si no hay usuarios, asignar rol de ADMIN_ROLE al primer usuario
-    if (existenUsuarios === 0) {
-      rol = 'ADMIN_ROLE';
-    }
-
-    // Verificar si el correo ya está registrado
-    const existeEmail = await Usuario.findOne({ where: { email } });
-    if (existeEmail) {
-      return res.status(400).json({
-        ok: false,
-        msg: 'El correo ya está registrado',
-      });
-    }
-
-    // Verificar si el teléfono ya está registrado
-    const existeTelefono = await Usuario.findOne({ where: { telefono } });
-    if (existeTelefono) {
-      return res.status(400).json({
-        ok: false,
-        msg: 'El teléfono ya está registrado',
-      });
-    }
-
-    // Encriptar contraseña
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // Crear un nuevo usuario
-    const nuevoUsuario = await Usuario.create({
-      ...req.body,
-      password: hashedPassword,
-      rol: rol,
-    });
-
-    // Generar el TOKEN - JWT
-    const token = await JwtGenerate.instance.generarJWT(nuevoUsuario.rut, nombre, apellidos, rol);
-
-    res.json({
-      ok: true,
-      usuario: nuevoUsuario,
-      token,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      ok: false,
-      msg: 'Error inesperado... revisar logs',
-    });
-  }
-};
-*/
-/*
-export const CrearUsuario = async( req: Request, res: Response ) => {
-  const { usuario, email, password, nombre, apellidos, rol } = req.body;
-
-    try {
-      // Verificar si el correo ya está registrado
-      const existeEmail = await Usuario.findOne({ where: { email } });
-  
-      if (existeEmail) {
-        return res.status(400).json({
-          ok: false,
-          msg: 'El correo ya está registrado',
-        });
-      }
-  
-      // Encriptar contraseña
-      const saltRounds = 10; // Número de rondas de cifrado
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-  
-      // Crear un nuevo usuario
-      const usuario = await Usuario.create({
-        ...req.body,
-        password: hashedPassword,
-      });
-  
-      // Generar el TOKEN - JWT
-      const token = await JwtGenerate.instance.generarJWT(usuario.rut, nombre, apellidos, rol);
-  
-      res.json({
-        ok: true,
-        usuario,
-        token,
-      });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({
-        ok: false,
-        msg: 'Error inesperado... revisar logs',
-      });
-    }
-  };
-
-*/
 const putUsuario = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;
@@ -477,39 +318,4 @@ const cambiarPassword = (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.cambiarPassword = cambiarPassword;
-/*
-
-  export const deleteUsuario = async (req: Request, res: Response) => {
-  
-    const { id } = req.params;
-    try {
-        const usuario = await Usuario.findByPk(id);
-
-        if (!usuario) {
-            return res.status(404).json({ msg: 'No existe un usuario con el id ' + id });
-        }
-
-        // Verificar si el usuario tiene citas médicas asociadas
-        const citas = await CitaMedica.findAll({ where: { rut_paciente: usuario.rut } });
-
-        // Eliminar todas las facturas asociadas a las citas
-        for (const cita of citas) {
-            await Factura.destroy({ where: { id_cita: cita.idCita } });
-            await cita.destroy(); // Elimina la cita después de eliminar las facturas
-        }
-
-        // Eliminar historiales médicos del usuario
-        await HistorialMedico.destroy({ where: { rut_paciente: usuario.rut } });
-
-        // Eliminar al usuario
-        await usuario.destroy();
-
-        res.json({ msg: `Usuario ${usuario.nombre} y todas sus entidades relacionadas han sido eliminados correctamente.` });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: 'Error en el servidor' });
-    }
-};
-
-*/
 //# sourceMappingURL=usuario.js.map

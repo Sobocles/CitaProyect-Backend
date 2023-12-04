@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import TipoCita from '../models/tipo_cita';
 import CitaMedica from '../models/cita_medica';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 import HorarioMedic from '../models/horario_medico';
 import Medico from '../models/medico';
 
@@ -158,6 +158,7 @@ export default class tipo_cita {
 
           public putTipoCita = async (req: Request, res: Response) => {
             let { especialidad_medica } = req.body;
+            
             const tipoCitaData = req.body;
           
             // Quitar acentos y convertir a minúsculas el campo especialidad_medica
@@ -201,6 +202,24 @@ export default class tipo_cita {
 
           public eliminarHorariosPorEspecialidad = async (especialidadMedica:any) => {
             try {
+                // Encontrar los médicos con la especialidad médica dada y cambiar su estado a inactivo
+                await Medico.update({ estado: 'inactivo' }, {
+                    where: { especialidad_medica: especialidadMedica }
+                });
+        
+                // Encontrar las citas médicas de los médicos con la especialidad dada y cambiar su estado
+                // Solo para citas en ciertos estados
+                await CitaMedica.update({ estado_actividad: 'inactivo' }, {
+                    where: {
+                        rut_medico: {
+                            [Op.in]: Sequelize.literal(`(SELECT rut FROM medicos WHERE especialidad_medica = '${especialidadMedica}')`)
+                        },
+                        estado: {
+                            [Op.in]: ['terminado', 'no_pagado', 'no_asistio']
+                        }
+                    }
+                });
+        
                 // Encontrar los IDs de los horarios médicos a eliminar
                 const horariosParaEliminar = await HorarioMedic.findAll({
                     attributes: ['idHorario'],
@@ -211,12 +230,10 @@ export default class tipo_cita {
                     }]
                 });
         
-                // Mapear los horarios para obtener los IDs y filtrar los undefined
-                const idsHorariosParaEliminar = horariosParaEliminar
-                    .map(horario => horario.dataValues.idHorario)
-                    .filter((id): id is number => id !== undefined); // Asegura que solo se incluyan números
+                // Mapear los horarios para obtener los IDs
+                const idsHorariosParaEliminar = horariosParaEliminar.map(horario => horario.idHorario);
         
-                // Si hay IDs para eliminar, ejecutar la consulta
+                // Eliminar los horarios médicos
                 if (idsHorariosParaEliminar.length > 0) {
                     await HorarioMedic.destroy({
                         where: {
@@ -227,10 +244,12 @@ export default class tipo_cita {
                     });
                 }
             } catch (error) {
-                console.error('Error al eliminar horarios médicos:', error);
-                throw new Error('Error al eliminar horarios médicos');
+                console.error('Error al cambiar el estado de médicos y citas médicas:', error);
+                throw new Error('Error al cambiar el estado de médicos y citas médicas');
             }
         };
+        
+        
         
         
         

@@ -26,24 +26,31 @@ class Historial_Medico {
         });
         this.getHistorial = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params; // ID del paciente
+            console.log('AQUI ESTA EL ID', id);
             const desde = Number(req.query.desde) || 0;
             const limite = Number(req.query.limite) || 5;
             try {
-                // Contar total de historiales para este paciente
+                // Contar total de historiales activos para este paciente
                 const totalHistoriales = yield historial_medico_1.default.count({
-                    where: { rut_paciente: id }
+                    where: {
+                        rut_paciente: id,
+                        estado: 'activo' // Agregando condición para contar solo historiales activos
+                    }
                 });
-                // Si no hay historiales, devuelve una respuesta vacía
+                // Si no hay historiales activos, devuelve una respuesta vacía
                 if (totalHistoriales === 0) {
                     return res.status(200).json({
                         ok: true,
-                        msg: 'No hay historiales para el paciente',
+                        msg: 'No hay historiales activos para el paciente',
                         historiales: []
                     });
                 }
-                // Obtener los historiales con paginación e incluir el médico activo
+                // Obtener los historiales activos con paginación e incluir el médico activo
                 const historiales = yield historial_medico_1.default.findAll({
-                    where: { rut_paciente: id },
+                    where: {
+                        rut_paciente: id,
+                        estado: 'activo' // Asegurarse de obtener solo historiales activos
+                    },
                     include: [{
                             model: medico_1.default,
                             as: 'medico',
@@ -57,7 +64,7 @@ class Historial_Medico {
                 res.json({
                     ok: true,
                     historiales,
-                    total: totalHistoriales // Total de historiales
+                    total: totalHistoriales // Total de historiales activos
                 });
             }
             catch (error) {

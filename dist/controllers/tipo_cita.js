@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const tipo_cita_1 = __importDefault(require("../models/tipo_cita"));
+const cita_medica_1 = __importDefault(require("../models/cita_medica"));
 const sequelize_1 = require("sequelize");
 const horario_medico_1 = __importDefault(require("../models/horario_medico"));
 const medico_1 = __importDefault(require("../models/medico"));
@@ -170,6 +171,22 @@ class tipo_cita {
         });
         this.eliminarHorariosPorEspecialidad = (especialidadMedica) => __awaiter(this, void 0, void 0, function* () {
             try {
+                // Encontrar los médicos con la especialidad médica dada y cambiar su estado a inactivo
+                yield medico_1.default.update({ estado: 'inactivo' }, {
+                    where: { especialidad_medica: especialidadMedica }
+                });
+                // Encontrar las citas médicas de los médicos con la especialidad dada y cambiar su estado
+                // Solo para citas en ciertos estados
+                yield cita_medica_1.default.update({ estado_actividad: 'inactivo' }, {
+                    where: {
+                        rut_medico: {
+                            [sequelize_1.Op.in]: sequelize_1.Sequelize.literal(`(SELECT rut FROM medicos WHERE especialidad_medica = '${especialidadMedica}')`)
+                        },
+                        estado: {
+                            [sequelize_1.Op.in]: ['terminado', 'no_pagado', 'no_asistio']
+                        }
+                    }
+                });
                 // Encontrar los IDs de los horarios médicos a eliminar
                 const horariosParaEliminar = yield horario_medico_1.default.findAll({
                     attributes: ['idHorario'],
@@ -179,11 +196,9 @@ class tipo_cita {
                             where: { especialidad_medica: especialidadMedica }
                         }]
                 });
-                // Mapear los horarios para obtener los IDs y filtrar los undefined
-                const idsHorariosParaEliminar = horariosParaEliminar
-                    .map(horario => horario.dataValues.idHorario)
-                    .filter((id) => id !== undefined); // Asegura que solo se incluyan números
-                // Si hay IDs para eliminar, ejecutar la consulta
+                // Mapear los horarios para obtener los IDs
+                const idsHorariosParaEliminar = horariosParaEliminar.map(horario => horario.idHorario);
+                // Eliminar los horarios médicos
                 if (idsHorariosParaEliminar.length > 0) {
                     yield horario_medico_1.default.destroy({
                         where: {
@@ -195,8 +210,8 @@ class tipo_cita {
                 }
             }
             catch (error) {
-                console.error('Error al eliminar horarios médicos:', error);
-                throw new Error('Error al eliminar horarios médicos');
+                console.error('Error al cambiar el estado de médicos y citas médicas:', error);
+                throw new Error('Error al cambiar el estado de médicos y citas médicas');
             }
         });
         this.deleteTipoCita = (req, res) => __awaiter(this, void 0, void 0, function* () {

@@ -29,6 +29,7 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const jwt_1 = __importDefault(require("../helpers/jwt"));
 const tipo_cita_1 = __importDefault(require("../models/tipo_cita"));
 const cita_medica_1 = __importDefault(require("../models/cita_medica"));
+const sequelize_1 = require("sequelize");
 class Medicos {
     constructor() {
         this.getMedicos = (req, res) => __awaiter(this, void 0, void 0, function* () {
@@ -62,39 +63,6 @@ class Medicos {
                 });
             }
         });
-        /*
-              getMedicos = async (req: Request, res: Response) => {
-    
-          console.log('olaaaaaa');
-          try {
-            const desde = Number(req.query.desde) || 0;
-        
-            // Obtén el total de médicos
-            const totalMedicos = await Medico.count();
-        
-            // Obtén los detalles de todos los médicos
-            const medicos = await Medico.findAll({
-       // Filtras los campos que deseas
-              offset: desde,
-              limit: 5,
-            });
-        
-            res.json({
-              ok: true,
-              medicos,
-              total: totalMedicos
-            });
-          } catch (error) {
-            console.error(error);
-            res.status(500).json({
-              msg: 'Error en el servidor',
-            });
-          }
-        };
-    
-    
-    
-        */
         this.getMedicosEspecialidad = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
                 // Obtener todas las especialidades válidas de TipoCita
@@ -124,38 +92,6 @@ class Medicos {
                 });
             }
         });
-        /*
-            getMedicosEspecialidad = async (req: Request, res: Response) => {
-              try {
-                // Obtener todas las especialidades válidas de TipoCita
-                const especialidadesValidas = await TipoCita.findAll({
-                  attributes: ['especialidad_medica']
-                });
-                const especialidades = especialidadesValidas.map(ec => ec.especialidad_medica);
-            
-                // Obtener todos los médicos
-                const medicos = await Medico.findAll({
-                  attributes: ['rut', 'nombre', 'apellidos', 'especialidad_medica']
-                });
-            
-                // Filtrar los médicos que tienen una especialidad no válida
-                const medicosFiltrados = medicos.filter(medico =>
-                  especialidades.includes(medico.especialidad_medica)
-                );
-            
-                res.json({
-                  ok: true,
-                  medicos: medicosFiltrados
-                });
-              } catch (error) {
-                console.error('Error al obtener los médicos y sus especialidades:', error);
-                res.status(500).json({
-                  ok: false,
-                  msg: 'Error en el servidor'
-                });
-              }
-            };
-        */
         this.getAllMedicos = (req, res) => __awaiter(this, void 0, void 0, function* () {
             console.log('olaaaaaa aquí');
             try {
@@ -180,29 +116,6 @@ class Medicos {
                 });
             }
         });
-        /*
-            getAllMedicos = async (req: Request, res: Response) => {
-              console.log('olaaaaaa aquii');
-              try {
-                // Obtén el total de médicos
-                const totalMedicos = await Medico.count();
-            
-                // Obtén los detalles de todos los médicos
-                const medicos = await Medico.findAll();
-            
-                res.json({
-                  ok: true,
-                  medicos,
-                  total: totalMedicos
-                });
-              } catch (error) {
-                console.error(error);
-                res.status(500).json({
-                  msg: 'Error en el servidor',
-                });
-              }
-            };
-        */
         this.getMedico = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { rut } = req.params;
             try {
@@ -291,74 +204,6 @@ class Medicos {
                 });
             }
         });
-        /*
-                
-                CrearMedico = async(req: Request, res: Response) => {
-                  const { email, password, rut, telefono, ...medicoData } = req.body;
-              
-                  try {
-                      // Verificar si el correo ya está registrado en la tabla de médicos
-                      const existeEmailMedico = await Medico.findOne({ where: { email } });
-              
-                      if (existeEmailMedico) {
-                          return res.status(400).json({
-                              ok: false,
-                              msg: 'El correo ya está registrado para otro médico',
-                          });
-                      }
-              
-                      // Verificar si el RUT ya está registrado en la tabla de médicos
-                      const existeRutMedico = await Medico.findOne({ where: { rut } });
-              
-                      if (existeRutMedico) {
-                          return res.status(400).json({
-                              ok: false,
-                              msg: 'El RUT ya está registrado para otro médico',
-                          });
-                      }
-              
-                      // Verificar si el teléfono ya está registrado en la tabla de médicos
-                      const existeTelefonoMedico = await Medico.findOne({ where: { telefono } });
-              
-                      if (existeTelefonoMedico) {
-                          return res.status(400).json({
-                              ok: false,
-                              msg: 'El número de teléfono ya está registrado para otro médico',
-                          });
-                      }
-              
-                      // Encriptar contraseña
-                      const saltRounds = 10; // Número de rondas de cifrado
-                      const hashedPassword = await bcrypt.hash(password, saltRounds);
-                      
-                      // Crea un nuevo médico
-                      const nuevoMedico = await Medico.create({
-                          ...medicoData,
-                          email,
-                          rut,
-                          telefono,
-                          password: hashedPassword,
-                          rol: 'MEDICO_ROLE'
-                      });
-              
-                      // Genera el JWT
-                      const token = await JwtGenerate.instance.generarJWT(nuevoMedico.rut, nuevoMedico.nombre, nuevoMedico.apellidos, nuevoMedico.rol);
-              
-                      res.json({
-                          ok: true,
-                          msg: "Registro completado con éxito. El médico ahora está habilitado para autenticarse y acceder al sistema con sus credenciales asignadas en la pantalla de login.",
-                          medico: nuevoMedico,
-                          token
-                      });
-                  } catch (error) {
-                      console.log(error);
-                      res.status(500).json({
-                          ok: false,
-                          msg: 'Hable con el administrador',
-                      });
-                  }
-              };
-           */
         this.putMedico = (req, res) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { rut } = req.params;
@@ -395,9 +240,16 @@ class Medicos {
                         msg: 'No existe un médico con el rut ' + rut,
                     });
                 }
-                // Encuentra todas las citas médicas asociadas al médico
-                const citas = yield cita_medica_1.default.findAll({ where: { rut_medico: medico.rut } });
-                // Cambia el estado de actividad de las citas médicas a "inactivo"
+                // Encuentra todas las citas médicas asociadas al médico en ciertos estados
+                const citas = yield cita_medica_1.default.findAll({
+                    where: {
+                        rut_medico: medico.rut,
+                        estado: {
+                            [sequelize_1.Op.in]: ['terminado', 'no_pagado', 'no_asistio']
+                        }
+                    }
+                });
+                // Cambia el estado de actividad de las citas médicas seleccionadas a "inactivo"
                 for (const cita of citas) {
                     yield cita.update({ estado_actividad: 'inactivo' });
                 }
@@ -405,79 +257,13 @@ class Medicos {
                 yield horario_medico_1.default.destroy({ where: { rut_medico: medico.rut } });
                 // Cambiar el estado del médico a inactivo
                 yield medico.update({ estado: 'inactivo' });
-                res.json({ msg: 'Médico, sus citas médicas y horarios asociados actualizados a estado inactivo.' });
+                res.json({ msg: 'Médico, sus citas médicas seleccionadas y horarios asociados actualizados a estado inactivo.' });
             }
             catch (error) {
                 console.error(error);
                 res.status(500).json({ msg: 'Error en el servidor' });
             }
         });
-        /*
-                  public deleteMedico = async (req: Request, res: Response) => {
-                    const { rut } = req.params;
-                    console.log('AQUI ESTA EL RUT DEL MEDICO', rut);
-                
-                    try {
-                        const medico = await Medico.findByPk(rut);
-                
-                        if (!medico) {
-                            return res.status(404).json({
-                                msg: 'No existe un médico con el rut ' + rut,
-                            });
-                        }
-                
-                        // Encuentra todas las citas médicas asociadas al médico
-                        const citas = await CitaMedica.findAll({ where: { rut_medico: medico.rut } });
-                
-                        // Cambia el estado de actividad de las citas médicas a "inactivo"
-                        for (const cita of citas) {
-                            await cita.update({ estado_actividad: 'inactivo' });
-                        }
-                
-                        // Cambiar el estado del médico a inactivo
-                        await medico.update({ estado: 'inactivo' });
-                
-                        res.json({ msg: 'Médico y sus citas médicas asociadas actualizadas a estado inactivo.' });
-                    } catch (error) {
-                        console.error(error);
-                        res.status(500).json({ msg: 'Error en el servidor' });
-                    }
-                };
-                
-        */
-        /*
-            public deleteMedico = async (req: Request, res: Response) => {
-                    const { rut } = req.params;
-                    console.log('AQUI ESTA EL RUT DEL MEDICO',rut);
-                  
-                    try {
-                      const medico = await Medico.findByPk(rut);
-                  
-                      if (!medico) {
-                        return res.status(404).json({
-                          msg: 'No existe un médico con el id ' + rut,
-                        });
-                      }
-                  
-                      // Eliminar los horarios relacionados con el médico
-                      await HorarioMedic.destroy({
-                        where: { rut_medico: medico.rut }, // Asumiendo que el campo se llama "rutMedico"
-                      });
-                  
-                      // Ahora puedes eliminar al médico
-                      await medico.destroy();
-                  
-                      res.json({ msg: 'Médico y sus horarios eliminados correctamente' });
-                    } catch (error) {
-                      console.error(error);
-                      res.status(500).json({
-                        msg: 'Error en el servidor',
-                      });
-                    }
-                  }
-        
-        
-        */
         this.cambiarPasswordMedico = (req, res) => __awaiter(this, void 0, void 0, function* () {
             console.log(req.body);
             const { rut, password, newPassword } = req.body;

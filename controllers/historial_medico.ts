@@ -26,52 +26,61 @@ export default class Historial_Medico {
         
 
         getHistorial = async (req: Request, res: Response) => {
-          const { id } = req.params; // ID del paciente
-          const desde = Number(req.query.desde) || 0;
-          const limite = Number(req.query.limite) || 5;
-      
-          try {
-              // Contar total de historiales para este paciente
-              const totalHistoriales = await HistorialMedico.count({
-                  where: { rut_paciente: id }
-              });
-      
-              // Si no hay historiales, devuelve una respuesta vacía
-              if (totalHistoriales === 0) {
-                  return res.status(200).json({
-                      ok: true,
-                      msg: 'No hay historiales para el paciente',
-                      historiales: []
-                  });
-              }
-      
-              // Obtener los historiales con paginación e incluir el médico activo
-              const historiales = await HistorialMedico.findAll({
-                  where: { rut_paciente: id },
-                  include: [{
-                      model: Medico,
-                      as: 'medico', 
-                      where: { estado: 'activo' },
-                      attributes: ['nombre', 'apellidos'] // Atributos a incluir del médico
-                  }],
-                  offset: desde,
-                  limit: limite,
-                  attributes: { exclude: ['rut_medico'] } 
-              });
-      
-              res.json({
-                  ok: true,
-                  historiales, // Devuelve los historiales médicos paginados junto con el médico activo
-                  total: totalHistoriales // Total de historiales
-              });
-          } catch (error) {
-              console.log(error);
-              res.status(500).json({
-                  ok: false,
-                  msg: 'Hable con el administrador',
-              });
-          }
-      };
+            const { id } = req.params; // ID del paciente
+            console.log('AQUI ESTA EL ID',id);
+            
+            const desde = Number(req.query.desde) || 0;
+            const limite = Number(req.query.limite) || 5;
+        
+            try {
+                // Contar total de historiales activos para este paciente
+                const totalHistoriales = await HistorialMedico.count({
+                    where: { 
+                        rut_paciente: id,
+                        estado: 'activo' // Agregando condición para contar solo historiales activos
+                    }
+                });
+        
+                // Si no hay historiales activos, devuelve una respuesta vacía
+                if (totalHistoriales === 0) {
+                    return res.status(200).json({
+                        ok: true,
+                        msg: 'No hay historiales activos para el paciente',
+                        historiales: []
+                    });
+                }
+        
+                // Obtener los historiales activos con paginación e incluir el médico activo
+                const historiales = await HistorialMedico.findAll({
+                    where: { 
+                        rut_paciente: id,
+                        estado: 'activo' // Asegurarse de obtener solo historiales activos
+                    },
+                    include: [{
+                        model: Medico,
+                        as: 'medico', 
+                        where: { estado: 'activo' },
+                        attributes: ['nombre', 'apellidos'] // Atributos a incluir del médico
+                    }],
+                    offset: desde,
+                    limit: limite,
+                    attributes: { exclude: ['rut_medico'] } 
+                });
+        
+                res.json({
+                    ok: true,
+                    historiales, // Devuelve los historiales médicos activos paginados junto con el médico activo
+                    total: totalHistoriales // Total de historiales activos
+                });
+            } catch (error) {
+                console.log(error);
+                res.status(500).json({
+                    ok: false,
+                    msg: 'Hable con el administrador',
+                });
+            }
+        };
+        
 
       getHistorialMedico = async (req: Request, res: Response) => {
         const { id } = req.params; // RUT del médico

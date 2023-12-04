@@ -235,13 +235,13 @@ class HorarioMedico {
         this.deleteHorarioMedico = (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
             try {
-                const usuario = yield horario_medico_1.default.findByPk(id);
-                if (!usuario) {
+                const HorarioMedico = yield horario_medico_1.default.findByPk(id);
+                if (!HorarioMedico) {
                     return res.status(404).json({
                         msg: 'No existe un horario medico con el id ' + id,
                     });
                 }
-                yield usuario.destroy();
+                yield HorarioMedico.destroy();
                 res.json({ msg: 'horario medico eliminado correctamente' });
             }
             catch (error) {

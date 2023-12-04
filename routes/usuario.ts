@@ -1,7 +1,7 @@
 
 import { Router } from 'express';
 import { check } from 'express-validator';
-import { getUsuario, getUsuarios, CrearUsuario, putUsuario, deleteUsuario, getAllUsuarios, getPacientesConCitasPagadasYEnCurso, cambiarPassword } from '../controllers/usuario'
+import { getUsuario, getUsuarios, CrearUsuario, putUsuario, deleteUsuario, getAllUsuarios, getPacientesConCitasPagadasYEnCurso, cambiarPassword, getPacientesConCitasPagadasYEnCursoYterminado } from '../controllers/usuario'
 import validarCampos from '../middlewares/validar-campos';
 import ValidarJwt from '../middlewares/validar-jwt';
 
@@ -15,6 +15,9 @@ getAllUsuarios);
 
 router.get('/allCurso/:rut_medico', 
  getPacientesConCitasPagadasYEnCurso);
+
+ router.get('/allCursoTerminado/:rut_medico', 
+ getPacientesConCitasPagadasYEnCursoYterminado);
 
 router.get('/:id', 
 getUsuario );

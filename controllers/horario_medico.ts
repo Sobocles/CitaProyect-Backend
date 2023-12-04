@@ -268,15 +268,15 @@ getHorariosMedicos = async (req: Request, res: Response) => {
             const { id } = req.params;
           
             try {
-              const usuario = await HorarioMedic.findByPk(id);
+              const HorarioMedico = await HorarioMedic.findByPk(id);
           
-              if (!usuario) {
+              if (!HorarioMedico) {
                 return res.status(404).json({
                   msg: 'No existe un horario medico con el id ' + id,
                 });
               }
           
-              await usuario.destroy();
+              await HorarioMedico.destroy();
           
               res.json({ msg: 'horario medico eliminado correctamente' });
             } catch (error) {
