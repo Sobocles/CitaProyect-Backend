@@ -1,56 +1,118 @@
-# CitaProyect
+📌 Gestión de Citas Médicas - Plataforma Web
 
-Descripcion del proyecto:
-Este proyecto consiste en una aplicación web para la gestión de citas médicas, diseñada principalmente para administradores. La plataforma les permite manejar integralmente la asignación de citas, incluyendo la capacidad de crear, modificar y eliminar información relacionada con médicos, usuarios, tipos de citas, y horarios médicos. La aplicación se destaca por su flexibilidad, permitiendo a los administradores organizar las citas basándose en diversos criterios como duración, precio, y especialidad médica, entre otros, optimizando así el proceso de gestión de citas en entornos médicos.
+📖 Descripción del Proyecto
 
-Una vez que el administrador haya ingresado medicos, tipos de citas, horarios medicos, informacion de la clinica y demas informacion relevante los usuarios o pacientes que ingresen a la aplicacion debera registrarse, una vez registrados podran acceder a la aplicacion podran revisar las citas medicas disponibles y buscarlas en una determinada fecha y de alguna especialidad medica en particular, una vez que hagan click en buscar cita, podran ver las citas disponibles en distintos bloques horarios que podran elegir y posteriormente comprar por mercado pago, a su vez los pacientes podran ver sus historiales medicos en donde podran revisar informacion relevantes como su diagnostico, medicamentos recetados, notas del medico etc.
+Este proyecto es una aplicación web diseñada para la gestión de citas médicas, enfocada principalmente en administradores. La plataforma permite:
 
-los medicos podran redactar los historiales medicos y enviarselos al perfil de historial de un paciente en particular para que lo pueda revisar en su cuenta, a su vez el medico podra ver el registro de sus citas medicas agendadas y revisarlas cuando pueda.
+✅ Crear, modificar y eliminar información relacionada con médicos, usuarios, tipos de citas y horarios médicos.<br>
+✅ Organizar citas según criterios como duración, precio y especialidad médica.<br>
+✅ Optimizar el proceso de gestión de citas en entornos médicos.<br>
 
+🏥 Usuario Administrador<br>
+🔹Email: Shadowhearts@gmail.com<br>
+🔹Password: Puppetmaster.9<br>
 
-Tecnologias utilizadas:
+🏥 Funcionamiento
 
-Frontend:
+🔹 Administradores: Configuran la plataforma ingresando médicos, tipos de citas, horarios y demás información relevante.<br>
+🔹 Pacientes: Se registran en la aplicación, buscan citas disponibles según especialidad y fecha, y pueden agendar y pagar citas mediante Mercado Pago.<br>
+🔹 Médicos: Pueden registrar historiales médicos de sus pacientes y visualizar sus citas programadas.<br>
+🔹 Historial Médico: Los pacientes pueden revisar diagnósticos, medicamentos recetados y notas del médico.<br>
 
-    Angular: Framework para aplicaciones web, facilita la creación de interfaces dinámicas y reactivas.
-    Bootstrap 5: Librería de diseño para crear interfaces responsivas y estilizadas.
-    Angular Material: Conjunto de componentes de interfaz basados en Material Design para Angular.
+🛠 Tecnologías Utilizadas
 
-Backend:
+🚀 Frontend<br>
+    Angular: Framework para aplicaciones web dinámicas.
+    Bootstrap 5: Estilos responsivos para mejorar la interfaz de usuario.
+    Angular Material: Componentes UI basados en Material Design.
 
-    TypeScript: Lenguaje de programación tipado, superset de JavaScript, que aporta robustez y claridad al código.
-    Node.js: Entorno de ejecución para JavaScript en el servidor, permite construir aplicaciones escalables.
-    Express: Marco de trabajo para Node.js, simplifica la creación de servidores web y API.
-    Sequelize: ORM para Node.js, facilita la interacción con bases de datos SQL como MySQL.
+💾 Backend<br>
+    TypeScript: Lenguaje tipado que mejora la robustez del código.
+    Node.js: Entorno de ejecución para JavaScript en el servidor.
+    Express: Framework ligero para la construcción de APIs.
+    Sequelize: ORM para manejar bases de datos SQL como MySQL.
 
+⚠ IMPORTANTE: LEER ANTES DE REVISAR EL PROYECTO
+1️⃣ Ejecutar Angular con conexión a Internet<br>
 
- IMPORTANTE!!! POR FAVOR LEER ANTES DE REVISAR EL PROYECTO!!!
+Antes de ejecutar el frontend con Angular, asegúrese de estar conectado a Internet.
+Esto es necesario porque el proyecto utiliza el CDN de Bootstrap, y sin conexión las interfaces se verán sin estilos.
 
-1- Antes de ejecutar el proyecto de angular con el comando ng serve  debe asegurarse de estar conectada a internet!! esto debido a que se utilizo el cdn de bootstrap por lo tanto si no esta conectada a internet
-las interfaces se veran sin los estilos de bootstrap, esta fue la razon de que en la primera sustentacion que tuve  del proyecto se veia todo mal.
-puede usar el internet del celular o cualquier otro medio pero porfavor debe revisar el proyecto conectada a internet.
+Comandos para ejecutar Angular:
 
-2- Para simular el proceso de compra de una cita médica utilizando usuarios de prueba con Mercado Pago, fue necesario generar un enlace a 
-través de ngrok.exe. Este paso es esencial porque el proyecto se ejecuta en un entorno local y no en un servidor de producción. ngrok.exe crea un enlace público temporal a nuestro
-servidor local, permitiendo que Mercado Pago interactúe con el proyecto como si estuviera alojado en línea. 
-el comando que se debe ejecutar para generar el enlace una vez se este ejecutando el backend en el puerto 800 es -->  .\ngrok.exe http 8000   <-- debe escribir eso tal cual
-el enlace que devuelve ese comando una vez ejecutado en la terminal (.\ngrok.exe http 8000) es parecido a este https://702b-2800-150-14e-fe7-94e6-e2dd-926e-ad09.ngrok.io
-Este enlace se debe incluir en controller/mercadoPago en el notification_url = "" como en este ejemplo --> notification_url: "https://702b-2800-150-14e-fe7-94e6-e2dd-926e-ad09.ngrok.io/api/mercadoPago/webhook"
-Es importante tener en cuenta que la URL generado por ngrok.exe expira después de un cierto tiempo y se desactiva si es que se cierra el backend en el puerto 8000, por lo tanto este proceso 
-debe repetirse cada vez que se inicie el proyecto en el puerto 8000.
+npm install
+ng serve
 
-pero antes de probar la aplicacion debe asegurarse de estar logeada como un usuario de prueba, debe ingresar a mercado pago y logearse como un usuario de prueba aqui --> https://www.mercadopago.cl/developers/es/docs/checkout-api/landing
-, una vez en la pagina debe hacer click en ingresar en la parte superior derecha de la pantalla e ingresar con este usuario 
-Usuario = TESTUSER90381648
-contraseña = tCfitcy8wl
+2️⃣ Simulación de pagos con Mercado Pago<br>
 
-Una vez se autentique en la aplicación con un usuario que simbolice un paciente debe ingresar tarjetas de prueba
-En este enlace puede encontrar usuarios de prueba para realizar simulaciones de compra -> https://www.mercadopago.cl/developers/es/docs/checkout-api/additional-content/your-integrations/test/cards.
-Por ejemplo, puede usar una tarjeta Visa con el número 4023 6535 2391 4373, código de seguridad 123, y 
-Fecha de caducidad 11/25. El nombre del titular puede ser "APRO" o "OTHE", dependiendo de si se aprueba o rechaza el pago.
+Para probar la compra de citas médicas, se debe usar ngrok para generar un enlace público, ya que el backend se ejecuta localmente.
 
-3-para ejecutar el proyecto en angular se debe usar npm install y luego ng serve, para ejecutar el proyecto backend de nodejs se debe ejecutar nodemon dist/app.js y tsc --watch para pasar los cambios de typescript a javascript (Asegurace de ejecutar el comando tsc --watch antes de que cambie el url en notification_url para probar la compra de una cita médica en mercado pago)
+📌 Generar un enlace público con ngrok<br>
 
+Una vez que el backend esté corriendo en el puerto 8000, ejecute el siguiente comando en la terminal:
 
+.\ngrok.exe http 8000
 
+Esto generará un enlace similar a:<br>
 
+https://702b-2800-150-14e-fe7-94e6-e2dd-926e-ad09.ngrok.io
+
+🔹 Configurar la URL en Mercado Pago<br>
+Este enlace debe actualizarse en el controlador controller/mercadoPago, dentro de la variable notification_url:
+
+notification_url: "https://702b-2800-150-14e-fe7-94e6-e2dd-926e-ad09.ngrok.io/api/mercadoPago/webhook"
+
+⚠ Nota:<br>
+Cada vez que se cierre el backend en el puerto 8000, la URL generada por ngrok expirará. Debe repetirse este proceso cada vez que se reinicie el proyecto.
+3️⃣ Acceso a Mercado Pago con un usuario de prueba<br>
+
+Antes de probar la compra, debe iniciar sesión en Mercado Pago con un usuario de prueba.
+
+📌 Instrucciones<br>
+
+    Acceda a la página de prueba de Mercado Pago:
+    🔗 Mercado Pago Developers
+    Haga clic en "Ingresar" en la esquina superior derecha.
+    Use las siguientes credenciales:
+
+    Usuario: TESTUSER90381648
+    Contraseña: tCfitcy8wl
+
+📌 Ingresar tarjetas de prueba<br>
+Para realizar pagos simulados, use tarjetas de prueba.
+🔗 Tarjetas de prueba de Mercado Pago
+
+Ejemplo de tarjeta de prueba Visa:<br>
+
+Número: 4023 6535 2391 4373
+Código de seguridad: 123
+Fecha de caducidad: 11/25
+Titular: "APRO" (para pagos aprobados) o "OTHE" (para pagos rechazados)
+
+🔥 Ejecución del Proyecto<br>
+🚀 Iniciar el Frontend (Angular)<br>
+
+```bash
+npm install
+ng serve
+```
+
+🔧 Iniciar el Backend (Node.js)<br>
+```bash
+nodemon dist/app.js
+```
+
+Para asegurarse de que los cambios en TypeScript se reflejen en el código JavaScript, ejecute:
+```bash
+tsc --watch
+```
+⚠ Importante:<br>
+Antes de cambiar la notification_url en Mercado Pago para probar la compra de una cita médica, asegúrese de ejecutar tsc --watch.
+
+📩 Contacto<br>
+
+Para más información sobre el proyecto, puede contactar al desarrollador:
+📧 Correo: smoralespincheira@gmail.com
+
+🎯 Conclusión<br>
+Este README proporciona una guía detallada sobre la configuración y ejecución del proyecto, asegurando que puedas probar todas sus funcionalidades sin inconvenientes. 🚀💻
