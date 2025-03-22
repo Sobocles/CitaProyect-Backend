@@ -10,13 +10,13 @@ import Factura from './factura';
 Usuario.hasMany(CitaMedica, { foreignKey: 'rut_paciente', sourceKey: 'rut', onDelete: 'CASCADE' });
 Usuario.hasMany(HistorialMedico, { foreignKey: 'rut_paciente', sourceKey: 'rut', onDelete: 'CASCADE' });
 
-// Asociaciones para TipoCita
-TipoCita.hasOne(CitaMedica, { foreignKey: 'idTipoCita', sourceKey: 'idTipo', onDelete: 'CASCADE' });
+TipoCita.hasOne(CitaMedica, { foreignKey: 'idTipoCita', sourceKey: 'idTipoCita', onDelete: 'CASCADE' });
+
 
 // Asociaciones para CitaMedica
 CitaMedica.belongsTo(Usuario, { foreignKey: 'rut_paciente', targetKey: 'rut', as: 'paciente', onDelete: 'CASCADE' });
 CitaMedica.belongsTo(Medico, { foreignKey: 'rut_medico', targetKey: 'rut', as: 'medico'});
-CitaMedica.belongsTo(TipoCita, { foreignKey: 'idTipoCita', targetKey: 'idTipo', as: 'tipoCita', onDelete: 'CASCADE' });
+CitaMedica.belongsTo(TipoCita, { foreignKey: 'idTipoCita', targetKey: 'idTipoCita', as: 'tipoCita', onDelete: 'CASCADE' });
 CitaMedica.hasOne(Factura, { foreignKey: 'id_cita', sourceKey: 'idCita', as: 'factura', onDelete: 'CASCADE' });
 
 // Asociaciones para Medico

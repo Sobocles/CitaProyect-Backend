@@ -57,7 +57,7 @@ HistorialMedico.init(
             allowNull: false,
             references: {
                 model: Medico,   // Referencia al modelo Medico
-                key: 'id'
+                key: 'rut'
             }
         },
         estado: { // Campo de estado agregado

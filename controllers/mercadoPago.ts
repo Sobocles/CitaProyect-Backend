@@ -49,7 +49,7 @@ export const createOrder = async (req: Request, res: Response) => {
       //.\ngrok http --region=sa 8000
       //.\ngrok http --region=us 8000
 
-      notification_url: 'https://5826-2800-150-14e-fe7-2dac-7ad0-6a6f-d86b.ngrok.io/api/mercadoPago/webhook'
+      notification_url: 'https://d261-2800-150-14e-fe7-a1af-e042-20d9-b0e0.ngrok.io/api/mercadoPago/webhook'
     };
   
     

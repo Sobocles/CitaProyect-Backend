@@ -3,7 +3,7 @@ import db from '../db/connection';
 import CitaMedica from './cita_medica'; // Asegúrate de que este importe es correcto
 
 class TipoCita extends Model {
-  public idTipo!: number;
+  public idTipoCita!: number;
   public tipo_cita!: string;
   public precio!: number;
   public especialidad_medica!: string;
@@ -13,7 +13,7 @@ class TipoCita extends Model {
 
 TipoCita.init(
   {
-    idTipo: {
+    idTipoCita: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
@@ -23,14 +23,14 @@ TipoCita.init(
       allowNull: true,
     },
     precio: {
-      type: DataTypes.FLOAT, // O ajusta el tipo de dato según corresponda
+      type: DataTypes.FLOAT, 
       allowNull: false,
     },
     especialidad_medica: {
       type: DataTypes.STRING,
     },
     duracion_cita: {
-      type: DataTypes.INTEGER, // Corregido a INTEGER
+      type: DataTypes.INTEGER, 
       allowNull: true,
     },
     estado: {
@@ -42,7 +42,7 @@ TipoCita.init(
   {
     sequelize: db,
     modelName: 'TipoCita',
-    tableName: 'tipo_cita'
+    tableName: 'tipocitas'
   }
 );
 

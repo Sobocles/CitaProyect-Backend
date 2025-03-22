@@ -8,7 +8,7 @@ const connection_1 = __importDefault(require("../db/connection"));
 class TipoCita extends sequelize_1.Model {
 }
 TipoCita.init({
-    idTipo: {
+    idTipoCita: {
         type: sequelize_1.DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
@@ -36,7 +36,7 @@ TipoCita.init({
 }, {
     sequelize: connection_1.default,
     modelName: 'TipoCita',
-    tableName: 'tipo_cita'
+    tableName: 'tipocitas'
 });
 exports.default = TipoCita;
 //# sourceMappingURL=tipo_cita.js.map

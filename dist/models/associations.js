@@ -13,12 +13,11 @@ const factura_1 = __importDefault(require("./factura"));
 // Asociaciones para Usuario
 usuario_1.default.hasMany(cita_medica_1.default, { foreignKey: 'rut_paciente', sourceKey: 'rut', onDelete: 'CASCADE' });
 usuario_1.default.hasMany(historial_medico_1.default, { foreignKey: 'rut_paciente', sourceKey: 'rut', onDelete: 'CASCADE' });
-// Asociaciones para TipoCita
-tipo_cita_1.default.hasOne(cita_medica_1.default, { foreignKey: 'idTipoCita', sourceKey: 'idTipo', onDelete: 'CASCADE' });
+tipo_cita_1.default.hasOne(cita_medica_1.default, { foreignKey: 'idTipoCita', sourceKey: 'idTipoCita', onDelete: 'CASCADE' });
 // Asociaciones para CitaMedica
 cita_medica_1.default.belongsTo(usuario_1.default, { foreignKey: 'rut_paciente', targetKey: 'rut', as: 'paciente', onDelete: 'CASCADE' });
 cita_medica_1.default.belongsTo(medico_1.default, { foreignKey: 'rut_medico', targetKey: 'rut', as: 'medico' });
-cita_medica_1.default.belongsTo(tipo_cita_1.default, { foreignKey: 'idTipoCita', targetKey: 'idTipo', as: 'tipoCita', onDelete: 'CASCADE' });
+cita_medica_1.default.belongsTo(tipo_cita_1.default, { foreignKey: 'idTipoCita', targetKey: 'idTipoCita', as: 'tipoCita', onDelete: 'CASCADE' });
 cita_medica_1.default.hasOne(factura_1.default, { foreignKey: 'id_cita', sourceKey: 'idCita', as: 'factura', onDelete: 'CASCADE' });
 // Asociaciones para Medico
 medico_1.default.hasMany(cita_medica_1.default, { foreignKey: 'rut_medico', sourceKey: 'rut' });

@@ -50,7 +50,7 @@ HistorialMedico.init({
         allowNull: false,
         references: {
             model: medico_1.default,
-            key: 'id'
+            key: 'rut'
         }
     },
     estado: {

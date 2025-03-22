@@ -44,8 +44,8 @@ Factura.init({
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: 'CitaMedica',
-            key: 'id_cita',
+            model: 'citamedicas',
+            key: 'idCita',
         },
     },
     payment_method_id: {
